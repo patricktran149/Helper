@@ -1,7 +1,6 @@
 package allsync
 
 import (
-	helper "Helper"
 	"bytes"
 	"compress/gzip"
 	"context"
@@ -19,6 +18,7 @@ import (
 	mssql "github.com/denisenkom/go-mssqldb"
 	"github.com/jinzhu/copier"
 	allSyncModel "github.com/patricktran149/AllSync.Model"
+	helper "github.com/patricktran149/Helper"
 	_ "github.com/sijms/go-ora/v2"
 	"go.elastic.co/apm/module/apmsql"
 	"go.mongodb.org/mongo-driver/bson"
