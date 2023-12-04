@@ -1,6 +1,6 @@
 module github.com/patricktran149/Helper
 
-go 1.19
+go 1.20
 
 require (
 	github.com/SebastiaanKlippert/go-wkhtmltopdf v1.9.2
@@ -11,7 +11,7 @@ require (
 	github.com/maja42/goval v1.3.1
 	github.com/mbordner/kazaam v3.4.7+incompatible
 	github.com/osteele/liquid v1.3.2
-	github.com/patricktran149/AllSync.Model v0.0.0-20231201084042-7f8d424a02ec
+	github.com/patricktran149/AllSync.Model v0.0.0-20231204080542-183c0e689d53
 	github.com/pkg/sftp v1.13.6
 	github.com/scorredoira/email v0.0.0-20191107070024-dc7b732c55da
 	github.com/sijms/go-ora/v2 v2.7.24
