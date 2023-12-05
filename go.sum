@@ -134,6 +134,8 @@ github.com/osteele/tuesday v1.0.3 h1:SrCmo6sWwSgnvs1bivmXLvD7Ko9+aJvvkmDjB5G4FTU
 github.com/osteele/tuesday v1.0.3/go.mod h1:pREKpE+L03UFuR+hiznj3q7j3qB1rUZ4XfKejwWFF2M=
 github.com/patricktran149/AllSync.Model v0.0.0-20231204080542-183c0e689d53 h1:lKGiAH4ugGhfWkFGj+dJn9XUT5kXmVQrIUUyA/JaN08=
 github.com/patricktran149/AllSync.Model v0.0.0-20231204080542-183c0e689d53/go.mod h1:figIcu5eIHJrloBta4/2YVssS1RVC2/1uKqQgWQK+No=
+github.com/patricktran149/liquid v0.0.0-20231205141128-855483ad4ee7 h1:Q5EzqCmLfR7/L8sq01K0uEX85+WLXuFtVVDg4oHtTaA=
+github.com/patricktran149/liquid v0.0.0-20231205141128-855483ad4ee7/go.mod h1:UcOO4j5j5lrtTQJJVwogDDkm0Z99Crc9es8w1/28iXI=
 github.com/pkg/browser v0.0.0-20180916011732-0a3d74bf9ce4/go.mod h1:4OwLy04Bl9Ef3GJJCoec+30X3LQs/0/m4HFRt/2LUSA=
 github.com/pkg/errors v0.8.0/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
 github.com/pkg/errors v0.8.1 h1:iURUrRGxPUNPdy5/HRSm+Yj6okJ6UtLINN0Q9M4+h3I=

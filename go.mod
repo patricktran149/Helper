@@ -10,8 +10,8 @@ require (
 	github.com/jinzhu/copier v0.4.0
 	github.com/maja42/goval v1.3.1
 	github.com/mbordner/kazaam v3.4.7+incompatible
-	github.com/osteele/liquid v1.3.2
 	github.com/patricktran149/AllSync.Model v0.0.0-20231204080542-183c0e689d53
+	github.com/patricktran149/liquid v0.0.0-20231205141128-855483ad4ee7
 	github.com/pkg/sftp v1.13.6
 	github.com/scorredoira/email v0.0.0-20191107070024-dc7b732c55da
 	github.com/sijms/go-ora/v2 v2.7.24
@@ -37,6 +37,7 @@ require (
 	github.com/klauspost/compress v1.13.6 // indirect
 	github.com/kr/fs v0.1.0 // indirect
 	github.com/montanaflynn/stats v0.0.0-20171201202039-1bf9dbcd8cbe // indirect
+	github.com/osteele/liquid v1.3.2 // indirect
 	github.com/osteele/tuesday v1.0.3 // indirect
 	github.com/pkg/errors v0.8.1 // indirect
 	github.com/prometheus/procfs v0.0.0-20190425082905-87a4384529e0 // indirect

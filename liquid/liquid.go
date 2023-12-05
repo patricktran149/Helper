@@ -2,7 +2,7 @@ package liquid
 
 import (
 	"fmt"
-	"github.com/osteele/liquid"
+	"github.com/patricktran149/liquid"
 	"strings"
 )
 
