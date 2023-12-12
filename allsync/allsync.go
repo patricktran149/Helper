@@ -1108,13 +1108,11 @@ func OracleConnect(oracleConf allSyncModel.OracleConfig) (db *sql.DB, err error)
 	return
 }
 
-func SQLExecuteStore(db *sql.DB, store string) (objects []map[string]interface{}, err error) {
+func SQLExecuteStore(db *sql.DB, query string) (objects []map[string]interface{}, err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 
 	db.PingContext(ctx)
-
-	query := fmt.Sprintf(`exec %s`, store)
 
 	rows, err := db.Query(query)
 	if err != nil {
@@ -1181,6 +1179,25 @@ func SQLExecuteStore(db *sql.DB, store string) (objects []map[string]interface{}
 		// Iterate through columns and retrieve values
 		for i, colName := range columnNames {
 			val := columns[i]
+
+			if strings.Contains(colName, "_query") {
+				q, ok := val.(string)
+				if !ok {
+					return objects, errors.New("Query is not a string ERROR - " + err.Error())
+				}
+
+				objs, err := SQLExecuteStore(db, q)
+				if err != nil {
+					return objects, errors.New("Query is not a string ERROR - " + err.Error())
+				}
+
+				//remove "_query" from colName
+				colName = strings.ReplaceAll(colName, "_query", "")
+
+				rowMap[colName] = objs
+
+				continue
+			}
 
 			// Convert column values to appropriate JSON types
 			switch v := val.(type) {
