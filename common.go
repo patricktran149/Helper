@@ -768,3 +768,26 @@ func RemoveDuplicate[T string | float64](sliceList []T) []T {
 	}
 	return list
 }
+
+func ReplaceIgnoreCase(input, old, new string) string {
+	// Find all occurrences of the old substring in the input string
+	index := strings.Index(strings.ToLower(input), strings.ToLower(old))
+
+	// If the substring is found, replace it
+	if index != -1 {
+		// Extract the substring before the match
+		before := input[:index]
+
+		// Extract the substring after the match
+		after := input[index+len(old):]
+
+		// Replace the old substring with the new one
+		replaced := before + new + after
+
+		// Recursively call the function in case there are more occurrences
+		return ReplaceIgnoreCase(replaced, old, new)
+	}
+
+	// If no more occurrences are found, return the modified string
+	return input
+}

@@ -1108,7 +1108,7 @@ func OracleConnect(oracleConf allSyncModel.OracleConfig) (db *sql.DB, err error)
 	return
 }
 
-func SQLExecuteStore(db *sql.DB, query string) (objects []map[string]interface{}, err error) {
+func SQLExecuteQuery(db *sql.DB, query string) (objects []map[string]interface{}, err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 
@@ -1180,19 +1180,19 @@ func SQLExecuteStore(db *sql.DB, query string) (objects []map[string]interface{}
 		for i, colName := range columnNames {
 			val := columns[i]
 
-			if strings.Contains(colName, "_query") {
+			if strings.Contains(strings.ToLower(colName), "_query") {
 				q, ok := val.(string)
 				if !ok {
 					return objects, errors.New("Query is not a string ERROR - " + err.Error())
 				}
 
-				objs, err := SQLExecuteStore(db, q)
+				objs, err := SQLExecuteQuery(db, q)
 				if err != nil {
-					return objects, errors.New("Query is not a string ERROR - " + err.Error())
+					return objects, errors.New("Exec SQL Query ERROR - " + err.Error())
 				}
 
 				//remove "_query" from colName
-				colName = strings.ReplaceAll(colName, "_query", "")
+				colName = helper.ReplaceIgnoreCase(colName, "_query", "")
 
 				rowMap[colName] = objs
 
@@ -1248,13 +1248,13 @@ func SQLExecuteRawQuery(db *sql.DB, query string) (err error) {
 	return
 }
 
-func OracleExecuteStore(db *sql.DB, store string) (objects []map[string]interface{}, err error) {
+func OracleExecuteQuery(db *sql.DB, query string) (objects []map[string]interface{}, err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 
 	db.PingContext(ctx)
 
-	rows, err := db.Query(store)
+	rows, err := db.Query(query)
 	if err != nil {
 		return objects, errors.New(fmt.Sprintf("Excecute Query ERROR - %s", err.Error()))
 	}
@@ -1319,6 +1319,25 @@ func OracleExecuteStore(db *sql.DB, store string) (objects []map[string]interfac
 		// Iterate through columns and retrieve values
 		for i, colName := range columnNames {
 			val := columns[i]
+
+			if strings.Contains(strings.ToLower(colName), "_query") {
+				q, ok := val.(string)
+				if !ok {
+					return objects, errors.New("Query is not a string ERROR - " + err.Error())
+				}
+
+				objs, err := OracleExecuteQuery(db, q)
+				if err != nil {
+					return objects, errors.New("Exec Oracle Query ERROR - " + err.Error())
+				}
+
+				//remove _query from colName
+				colName = helper.ReplaceIgnoreCase(colName, "_query", "")
+
+				rowMap[colName] = objs
+
+				continue
+			}
 
 			// Convert column values to appropriate JSON types
 			switch v := val.(type) {
