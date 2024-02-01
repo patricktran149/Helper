@@ -3,6 +3,7 @@ package liquid
 import (
 	"fmt"
 	"github.com/patricktran149/liquid"
+	"math/rand"
 	"strings"
 )
 
@@ -12,6 +13,8 @@ func NewEngine() *liquid.Engine {
 	engine.RegisterFilter("left", leftNCharactersFilter)
 	engine.RegisterFilter("substring", substringFilter)
 	engine.RegisterFilter("raw", rawstringFilter)
+	engine.RegisterFilter("randomInt", randomInt)
+	engine.RegisterFilter("randomString", randomString)
 
 	return engine
 }
@@ -84,4 +87,48 @@ func rawstringFilter(input interface{}) string {
 	)
 
 	return replacer.Replace(str)
+}
+
+func randomInt(input interface{}) (int, error) {
+	length, ok := input.(int)
+	if !ok {
+		return 0, fmt.Errorf("Input is not a number ")
+	}
+
+	if length <= 0 {
+		return 0, fmt.Errorf("Input is invalid: negative number ")
+	}
+
+	// Calculate the range for the random number based on the number of length
+	min := intPow(10, length-1)
+	max := intPow(10, length) - 1
+
+	// Generate a random number within the specified range
+	return rand.Intn(max-min+1) + min, nil
+}
+
+func randomString(input interface{}) (string, error) {
+	length, ok := input.(int)
+	if !ok {
+		return "", fmt.Errorf("Input is not a number ")
+	}
+
+	// Define the range of printable ASCII characters
+	const printableChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+
+	// Generate a random string by selecting characters from the printableChars
+	result := make([]byte, length)
+	for i := 0; i < length; i++ {
+		result[i] = printableChars[rand.Intn(len(printableChars))]
+	}
+
+	return string(result), nil
+}
+
+func intPow(base, exponent int) int {
+	result := 1
+	for i := 0; i < exponent; i++ {
+		result *= base
+	}
+	return result
 }
