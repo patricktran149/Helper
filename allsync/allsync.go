@@ -565,11 +565,6 @@ func RequestOtherSystemAPIFromAllSyncFlow(asConfig allSyncModel.AllSyncConfig, f
 }
 
 func RequestOtherSystemAPI(method, apiUrl string, data []byte, params, headers map[string]interface{}) (sendData, respData string, err error) {
-	var (
-		query = url.Values{}
-		body  []byte
-	)
-
 	sendData = string(data)
 
 	req, err := http.NewRequest(method, apiUrl, strings.NewReader(sendData))
@@ -578,10 +573,14 @@ func RequestOtherSystemAPI(method, apiUrl string, data []byte, params, headers m
 		return
 	}
 
-	for k, v := range params {
-		query.Add(k, fmt.Sprintf("%v", v))
+	if len(params) > 0 {
+		query := url.Values{}
+		for k, v := range params {
+			query.Add(k, fmt.Sprintf("%v", v))
+		}
+
+		req.URL.RawQuery = query.Encode()
 	}
-	req.URL.RawQuery = query.Encode()
 
 	for k, v := range headers {
 		req.Header.Set(k, fmt.Sprintf("%v", v))
@@ -596,7 +595,7 @@ func RequestOtherSystemAPI(method, apiUrl string, data []byte, params, headers m
 
 	if res != nil {
 		defer res.Body.Close()
-		body, _ = ioutil.ReadAll(res.Body)
+		body, _ := ioutil.ReadAll(res.Body)
 		respData = string(body)
 
 		if res.StatusCode < 200 || res.StatusCode > 299 {
