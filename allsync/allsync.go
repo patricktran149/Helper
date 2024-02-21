@@ -1041,7 +1041,7 @@ func LogsAddLog(logs []allSyncModel.QueueLog, funcName, log1, log2, log3 string)
 		Log1:         log1,
 		Log2:         log2,
 		Log3:         log3,
-		LogDate:      time.Now().UnixMicro(),
+		LogDate:      time.Now().Unix(),
 	})
 
 	return logs
