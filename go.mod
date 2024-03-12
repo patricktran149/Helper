@@ -13,13 +13,13 @@ require (
 	github.com/jinzhu/copier v0.4.0
 	github.com/maja42/goval v1.3.1
 	github.com/mbordner/kazaam v3.4.7+incompatible
-	github.com/patricktran149/AllSync.Model v0.0.0-20240312145121-7c171fca5048
+	github.com/patricktran149/AllSync.Model v0.0.0-20240312160249-4efa2628ea24
 	github.com/patricktran149/liquid v0.0.0-20231206032451-138980c5ec17
 	github.com/pkg/sftp v1.13.6
 	github.com/scorredoira/email v0.0.0-20191107070024-dc7b732c55da
 	github.com/sijms/go-ora/v2 v2.7.24
 	go.elastic.co/apm/module/apmsql v1.15.0
-	go.mongodb.org/mongo-driver v1.13.0
+	go.mongodb.org/mongo-driver v1.14.0
 	golang.org/x/crypto v0.21.0
 	golang.org/x/text v0.14.0
 )

@@ -136,6 +136,8 @@ github.com/osteele/tuesday v1.0.3 h1:SrCmo6sWwSgnvs1bivmXLvD7Ko9+aJvvkmDjB5G4FTU
 github.com/osteele/tuesday v1.0.3/go.mod h1:pREKpE+L03UFuR+hiznj3q7j3qB1rUZ4XfKejwWFF2M=
 github.com/patricktran149/AllSync.Model v0.0.0-20240312145121-7c171fca5048 h1:626gEQlnwwuEB2qovnh3nR3/gnyjJkXjgQfKQWzzCzc=
 github.com/patricktran149/AllSync.Model v0.0.0-20240312145121-7c171fca5048/go.mod h1:figIcu5eIHJrloBta4/2YVssS1RVC2/1uKqQgWQK+No=
+github.com/patricktran149/AllSync.Model v0.0.0-20240312160249-4efa2628ea24 h1:T1zhI77/bdIb8ZyVxcB3hYDgCm1Rbbd5EWC0v3oLuaM=
+github.com/patricktran149/AllSync.Model v0.0.0-20240312160249-4efa2628ea24/go.mod h1:figIcu5eIHJrloBta4/2YVssS1RVC2/1uKqQgWQK+No=
 github.com/patricktran149/liquid v0.0.0-20231206032451-138980c5ec17 h1:P+ePFDrhDIR3x1ZAsDQ696RcZShTi/ZIRKS5rFbr9Io=
 github.com/patricktran149/liquid v0.0.0-20231206032451-138980c5ec17/go.mod h1:+GrCIaQpiMGEpyslgXjlWKlOabqUpRzmHFoHujzQ6PQ=
 github.com/pkg/browser v0.0.0-20180916011732-0a3d74bf9ce4/go.mod h1:4OwLy04Bl9Ef3GJJCoec+30X3LQs/0/m4HFRt/2LUSA=
@@ -203,6 +205,8 @@ go.elastic.co/fastjson v1.1.0 h1:3MrGBWWVIxe/xvsbpghtkFoPciPhOCmjsR/HfwEeQR4=
 go.elastic.co/fastjson v1.1.0/go.mod h1:boNGISWMjQsUPy/t6yqt2/1Wx4YNPSe+mZjlyw9vKKI=
 go.mongodb.org/mongo-driver v1.13.0 h1:67DgFFjYOCMWdtTEmKFpV3ffWlFnh+CYZ8ZS/tXWUfY=
 go.mongodb.org/mongo-driver v1.13.0/go.mod h1:/rGBTebI3XYboVmgz+Wv3Bcbl3aD0QF9zl6kDDw18rQ=
+go.mongodb.org/mongo-driver v1.14.0 h1:P98w8egYRjYe3XDjxhYJagTokP/H6HzlsnojRgZRd80=
+go.mongodb.org/mongo-driver v1.14.0/go.mod h1:Vzb0Mk/pa7e6cWw85R4F/endUC3u0U9jGcNU603k65c=
 go.uber.org/atomic v1.3.2/go.mod h1:gD2HeocX3+yG+ygLZcrzQJaqmWj9AIm7n08wl/qW/PE=
 go.uber.org/atomic v1.4.0/go.mod h1:gD2HeocX3+yG+ygLZcrzQJaqmWj9AIm7n08wl/qW/PE=
 go.uber.org/atomic v1.6.0/go.mod h1:sABNBOSYdrvTF6hTgEIbc7YasKWGhgEQZyfxyTvoXHQ=
