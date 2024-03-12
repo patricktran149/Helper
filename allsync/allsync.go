@@ -1077,36 +1077,6 @@ func SQLConnect(sqlConf allSyncModel.SQLConfig) (db *sql.DB, err error) {
 	return
 }
 
-func OracleConnect(oracleConf allSyncModel.OracleConfig) (db *sql.DB, err error) {
-	var connStr string
-
-	if oracleConf.User == "" {
-		// Windows authentication
-		connStr = fmt.Sprintf("oracle://%s:1521/%s", oracleConf.Server, oracleConf.DatabaseName)
-	} else {
-		// SQL Server authentication
-		connStr = fmt.Sprintf("oracle://%s:%s@%s:1521/%s", oracleConf.User, url.QueryEscape(oracleConf.Password), oracleConf.Server, oracleConf.DatabaseName)
-	}
-
-	if !helper.IsDriverRegistered("oracle") {
-		apmsql.Register("oracle", &mssql.Driver{})
-	}
-
-	db, err = sql.Open("oracle", connStr)
-	if err != nil {
-		return db, errors.New("Open Oracle DB ERROR - " + err.Error())
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
-
-	if err = db.PingContext(ctx); err != nil {
-		return db, errors.New("Ping Database ERROR - " + err.Error())
-	}
-
-	return
-}
-
 func SQLExecuteQuery(db *sql.DB, query string) (objects []map[string]interface{}, err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
@@ -1247,6 +1217,36 @@ func SQLExecuteRawQuery(db *sql.DB, query string) (err error) {
 	return
 }
 
+func OracleConnect(oracleConf allSyncModel.OracleConfig) (db *sql.DB, err error) {
+	var connStr string
+
+	if oracleConf.User == "" {
+		// Windows authentication
+		connStr = fmt.Sprintf("oracle://%s:1521/%s", oracleConf.Server, oracleConf.DatabaseName)
+	} else {
+		// SQL Server authentication
+		connStr = fmt.Sprintf("oracle://%s:%s@%s:1521/%s", oracleConf.User, url.QueryEscape(oracleConf.Password), oracleConf.Server, oracleConf.DatabaseName)
+	}
+
+	if !helper.IsDriverRegistered("oracle") {
+		apmsql.Register("oracle", &mssql.Driver{})
+	}
+
+	db, err = sql.Open("oracle", connStr)
+	if err != nil {
+		return db, errors.New("Open Oracle DB ERROR - " + err.Error())
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	if err = db.PingContext(ctx); err != nil {
+		return db, errors.New("Ping Database ERROR - " + err.Error())
+	}
+
+	return
+}
+
 func OracleExecuteQuery(db *sql.DB, query string) (objects []map[string]interface{}, err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
@@ -1372,13 +1372,188 @@ func OracleExecuteQuery(db *sql.DB, query string) (objects []map[string]interfac
 	return
 }
 
-func OracleExecuteRawQuery(db *sql.DB, store string) (err error) {
+func OracleExecuteRawQuery(db *sql.DB, query string) (err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 
 	db.PingContext(ctx)
 
-	rows, err := db.Query(store)
+	rows, err := db.Query(query)
+	if err != nil {
+		return errors.New(fmt.Sprintf("Excecute Query ERROR - %s", err.Error()))
+	}
+	defer rows.Close()
+
+	return
+}
+
+func SAPHanaConnect(conf allSyncModel.SAPHanaConfig) (db *sql.DB, err error) {
+	var connStr string
+
+	if conf.User == "" {
+		// Windows authentication
+		connStr = fmt.Sprintf("hdb://%s?databaseName=%s", conf.Server, conf.DatabaseName)
+	} else {
+		// SAP Hana Server authentication
+		connStr = fmt.Sprintf("hdb://%s:%s@%s?databaseName=%s", conf.User, conf.Password, conf.Server, conf.DatabaseName)
+	}
+
+	if !helper.IsDriverRegistered("hdb") {
+		apmsql.Register("hdb", &mssql.Driver{})
+	}
+
+	db, err = sql.Open("hdb", connStr)
+	if err != nil {
+		return db, errors.New("Open SAP Hana DB ERROR - " + err.Error())
+	}
+
+	_, err = db.ExecContext(context.Background(), fmt.Sprintf("SET SCHEMA %s", conf.Schema))
+	if err != nil {
+		return db, errors.New("SET Schema ERROR - " + err.Error())
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	if err = db.PingContext(ctx); err != nil {
+		return db, errors.New("Ping Database ERROR - " + err.Error())
+	}
+
+	return
+}
+
+func SAPHanaExecuteQuery(db *sql.DB, query string) (objects []map[string]interface{}, err error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	defer cancel()
+
+	db.PingContext(ctx)
+
+	rows, err := db.Query(query)
+	if err != nil {
+		return objects, errors.New(fmt.Sprintf("Excecute Query ERROR - %s", err.Error()))
+	}
+	defer rows.Close()
+
+	// Get column names
+	columnNames, err := rows.Columns()
+	if err != nil {
+		return objects, errors.New(fmt.Sprintf("Get collumn names ERROR - %s", err.Error()))
+	}
+
+	var hasJsonText = false
+	if len(columnNames) == 1 && columnNames[0] == "json" {
+		hasJsonText = true
+	}
+
+	// Get column types
+	columnTypes, err := rows.ColumnTypes()
+	if err != nil {
+		return objects, errors.New(fmt.Sprintf("Get collumn types ERROR - %s", err.Error()))
+	}
+
+	// Iterate through rows
+	for rows.Next() {
+		// Create a slice to hold column values
+		columns := make([]interface{}, len(columnNames))
+
+		// Create a slice to hold pointers to each column value
+		columnPointers := make([]interface{}, len(columnNames))
+
+		// Initialize pointers to each column value
+		for i := range columns {
+			columnPointers[i] = &columns[i]
+		}
+
+		// Scan the row into the columns slice
+		if err := rows.Scan(columnPointers...); err != nil {
+			return objects, errors.New(fmt.Sprintf("Row scan ERROR - %s", err.Error()))
+		}
+
+		if hasJsonText {
+			val := columns[0]
+
+			// Convert column values to appropriate JSON types
+			switch v := val.(type) {
+			case string:
+				// Handle string data type explicitly
+				if err = json.Unmarshal([]byte(v), &objects); err != nil {
+					return objects, errors.New("Unmarshal string to JSON ERROR - " + err.Error())
+				}
+				break
+			default:
+				return objects, errors.New("json field is not a text to marshal to JSON format")
+			}
+
+			return
+		}
+
+		// Create a map to hold the row data
+		rowMap := make(map[string]interface{})
+
+		// Iterate through columns and retrieve values
+		for i, colName := range columnNames {
+			val := columns[i]
+
+			if strings.Contains(strings.ToLower(colName), "_query") {
+				q, ok := val.(string)
+				if !ok {
+					return objects, errors.New("Query is not a string ERROR - " + err.Error())
+				}
+
+				objs, err := SAPHanaExecuteQuery(db, q)
+				if err != nil {
+					return objects, errors.New("Exec SAP Hana Query ERROR - " + err.Error())
+				}
+
+				//remove _query from colName
+				colName = helper.ReplaceIgnoreCase(colName, "_query", "")
+
+				rowMap[colName] = objs
+
+				continue
+			}
+
+			// Convert column values to appropriate JSON types
+			switch v := val.(type) {
+			case nil:
+				rowMap[colName] = nil
+			case int, int32, int64:
+				rowMap[colName] = v
+			case float64:
+				rowMap[colName] = v
+			case []byte:
+				// Convert []byte to string for text-like data types
+				colType := columnTypes[i].DatabaseTypeName()
+				if colType == "VARCHAR" || colType == "TEXT" || colType == "NVARCHAR" {
+					rowMap[colName] = string(v)
+				} else {
+					rowMap[colName] = v // Keep []byte for other binary-like data types
+				}
+			case time.Time:
+				// Convert time.Time to string in a specific format
+				rowMap[colName] = v.Format("2006-01-02 15:04:05")
+			case string:
+				// Handle string data type explicitly
+				rowMap[colName] = v
+			default:
+				rowMap[colName] = fmt.Sprintf("%v", v)
+			}
+		}
+
+		// Append the row map to the objects slice
+		objects = append(objects, rowMap)
+	}
+
+	return
+}
+
+func SAPHanaExecuteRawQuery(db *sql.DB, query string) (err error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	defer cancel()
+
+	db.PingContext(ctx)
+
+	rows, err := db.Query(query)
 	if err != nil {
 		return errors.New(fmt.Sprintf("Excecute Query ERROR - %s", err.Error()))
 	}

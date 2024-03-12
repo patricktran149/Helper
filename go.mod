@@ -10,7 +10,7 @@ require (
 	github.com/jinzhu/copier v0.4.0
 	github.com/maja42/goval v1.3.1
 	github.com/mbordner/kazaam v3.4.7+incompatible
-	github.com/patricktran149/AllSync.Model v0.0.0-20231204080542-183c0e689d53
+	github.com/patricktran149/AllSync.Model v0.0.0-20240312145121-7c171fca5048
 	github.com/patricktran149/liquid v0.0.0-20231206032451-138980c5ec17
 	github.com/pkg/sftp v1.13.6
 	github.com/scorredoira/email v0.0.0-20191107070024-dc7b732c55da
