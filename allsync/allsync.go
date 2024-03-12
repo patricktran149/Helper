@@ -14,6 +14,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	_ "github.com/SAP/go-hdb/driver"
 	xj "github.com/basgys/goxml2json"
 	mssql "github.com/denisenkom/go-mssqldb"
 	"github.com/jinzhu/copier"
