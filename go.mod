@@ -1,8 +1,8 @@
 module github.com/patricktran149/Helper
 
-go 1.21
+go 1.22.1
 
-toolchain go1.22.1
+toolchain go1.22.2
 
 require (
 	github.com/SAP/go-hdb v1.8.11
@@ -13,7 +13,7 @@ require (
 	github.com/jinzhu/copier v0.4.0
 	github.com/maja42/goval v1.3.1
 	github.com/mbordner/kazaam v3.4.7+incompatible
-	github.com/patricktran149/AllSync.Model v0.0.0-20240312160249-4efa2628ea24
+	github.com/patricktran149/AllSync.Model v0.0.0-20240523101346-8d9753efa8fd
 	github.com/patricktran149/liquid v0.0.0-20231206032451-138980c5ec17
 	github.com/pkg/sftp v1.13.6
 	github.com/scorredoira/email v0.0.0-20191107070024-dc7b732c55da
@@ -39,6 +39,7 @@ require (
 	github.com/joeshaw/multierror v0.0.0-20140124173710-69b34d4ec901 // indirect
 	github.com/klauspost/compress v1.13.6 // indirect
 	github.com/kr/fs v0.1.0 // indirect
+	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826 // indirect
 	github.com/montanaflynn/stats v0.0.0-20171201202039-1bf9dbcd8cbe // indirect
 	github.com/osteele/tuesday v1.0.3 // indirect
 	github.com/pkg/errors v0.8.1 // indirect

@@ -982,6 +982,66 @@ func UpdateMicroService(asConfig allSyncModel.AllSyncConfig, request allSyncMode
 	return
 }
 
+func GetMicroServiceStatus(asConfig allSyncModel.AllSyncConfig, filter bson.M) (mssList []allSyncModel.MicroServiceStatusResponse, err error) {
+	var allSyncResp allSyncModel.ToAppResponse
+
+	statusCode, msg, respData := RequestAllSync(asConfig, "MicroServiceStatus", http.MethodGet, nil, filter)
+	if statusCode != 200 {
+		return nil, errors.New(fmt.Sprintf("Get Micro Service Status ERROR - %v", msg))
+	}
+
+	if err := json.Unmarshal(respData, &allSyncResp); err != nil {
+		return nil, errors.New("JSON Unmarshal ERROR - " + err.Error())
+	}
+
+	return allSyncResp.Data.MicroServiceStatusList, nil
+}
+
+func GetMicroServiceStatusByID(asConfig allSyncModel.AllSyncConfig, id string) (mss allSyncModel.MicroServiceStatusResponse, err error) {
+	var allSyncResp allSyncModel.ToAppResponse
+
+	statusCode, msg, respData := RequestAllSync(asConfig, fmt.Sprintf("MicroServiceStatus/%s", id), http.MethodGet, nil, nil)
+	if statusCode != 200 {
+		return mss, errors.New(fmt.Sprintf("Get Micro Service Status ERROR - %v", msg))
+	}
+
+	if err := json.Unmarshal(respData, &allSyncResp); err != nil {
+		return mss, errors.New("JSON Unmarshal ERROR - " + err.Error())
+	}
+
+	return allSyncResp.Data.MicroServiceStatus, nil
+}
+
+func CreateMicroServiceStatus(asConfig allSyncModel.AllSyncConfig, mssReq allSyncModel.MicroServiceStatusRequest) (mss allSyncModel.MicroServiceStatusResponse, err error) {
+	var allSyncResp allSyncModel.ToAppResponse
+
+	statusCode, msg, respData := RequestAllSync(asConfig, "MicroServiceStatus", http.MethodPost, mssReq, nil)
+	if statusCode != 200 {
+		return mss, errors.New(fmt.Sprintf("Create Micro Service Status ERROR - %v", msg))
+	}
+
+	if err := json.Unmarshal(respData, &allSyncResp); err != nil {
+		return mss, errors.New("JSON Unmarshal ERROR - " + err.Error())
+	}
+
+	return allSyncResp.Data.MicroServiceStatus, nil
+}
+
+func UpdateMicroServiceStatus(asConfig allSyncModel.AllSyncConfig, id string, mssReq allSyncModel.MicroServiceStatusUpdateRequest) (mss allSyncModel.MicroServiceStatusResponse, err error) {
+	var allSyncResp allSyncModel.ToAppResponse
+
+	statusCode, msg, respData := RequestAllSync(asConfig, fmt.Sprintf("MicroServiceStatus/%s", id), http.MethodPut, mssReq, nil)
+	if statusCode != 200 {
+		return mss, errors.New(fmt.Sprintf("Update Micro Service Status ERROR - %v", msg))
+	}
+
+	if err := json.Unmarshal(respData, &allSyncResp); err != nil {
+		return mss, errors.New("JSON Unmarshal ERROR - " + err.Error())
+	}
+
+	return allSyncResp.Data.MicroServiceStatus, nil
+}
+
 func HMACTimeStampFormatConvert(dateStr string) string {
 	r := strings.NewReplacer("YYYY", "2006",
 		"MM", "01",
