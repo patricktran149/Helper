@@ -965,6 +965,36 @@ func GetIntegrationFlowByID(asConfig allSyncModel.AllSyncConfig, id string) (int
 	return allSyncResp.Data.IntegrationFlow, nil
 }
 
+func GetMicroService(asConfig allSyncModel.AllSyncConfig, filter bson.M) (msList []allSyncModel.MicroServiceResponse, err error) {
+	var allSyncResp allSyncModel.ToAppResponse
+
+	statusCode, msg, respData := RequestAllSync(asConfig, "MicroServiceStatus", http.MethodGet, nil, filter)
+	if statusCode != 200 {
+		return nil, errors.New(fmt.Sprintf("Get Micro Service ERROR - %v", msg))
+	}
+
+	if err := json.Unmarshal(respData, &allSyncResp); err != nil {
+		return nil, errors.New("JSON Unmarshal ERROR - " + err.Error())
+	}
+
+	return allSyncResp.Data.MicroServiceList, nil
+}
+
+func GetMicroServiceByID(asConfig allSyncModel.AllSyncConfig, serviceID string) (ms allSyncModel.MicroServiceResponse, err error) {
+	var allSyncResp allSyncModel.ToAppResponse
+
+	statusCode, msg, respData := RequestAllSync(asConfig, fmt.Sprintf("MicroService/%s", serviceID), http.MethodGet, nil, nil)
+	if statusCode != 200 {
+		return ms, errors.New(fmt.Sprintf("Get Micro Service ERROR - %v", msg))
+	}
+
+	if err := json.Unmarshal(respData, &allSyncResp); err != nil {
+		return ms, errors.New("JSON Unmarshal ERROR - " + err.Error())
+	}
+
+	return allSyncResp.Data.MicroService, nil
+}
+
 func UpdateMicroService(asConfig allSyncModel.AllSyncConfig, request allSyncModel.MicroServiceUpdateRequest) (err error) {
 	req := helper.ModelToMapStringInterface(request)
 
