@@ -1027,7 +1027,7 @@ func CreateMicroServiceStatus(asConfig allSyncModel.AllSyncConfig, mssReq allSyn
 	return allSyncResp.Data.MicroServiceStatus, nil
 }
 
-func UpdateMicroServiceStatus(asConfig allSyncModel.AllSyncConfig, id string, mssReq allSyncModel.MicroServiceStatusUpdateRequest) (mss allSyncModel.MicroServiceStatusResponse, err error) {
+func UpdateMicroServiceStatus(asConfig allSyncModel.AllSyncConfig, id string, mssReq bson.M) (mss allSyncModel.MicroServiceStatusResponse, err error) {
 	var allSyncResp allSyncModel.ToAppResponse
 
 	statusCode, msg, respData := RequestAllSync(asConfig, fmt.Sprintf("MicroServiceStatus/%s", id), http.MethodPut, mssReq, nil)
