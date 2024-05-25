@@ -26,7 +26,6 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"hash"
 	"io"
-	"io/ioutil"
 	"math"
 	"net/http"
 	"net/url"
@@ -596,7 +595,13 @@ func RequestOtherSystemAPI(method, apiUrl string, data []byte, params, headers m
 
 	if res != nil {
 		defer res.Body.Close()
-		body, _ := ioutil.ReadAll(res.Body)
+		body, _ := io.ReadAll(res.Body)
+
+		if len(string(body)) > 5*1024*1024 { // 5MB
+			err = errors.New("Response length greater than 5MB ")
+			return
+		}
+
 		respData = string(body)
 
 		if res.StatusCode < 200 || res.StatusCode > 299 {
