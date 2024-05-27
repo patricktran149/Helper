@@ -659,6 +659,36 @@ func GetApplicationList(asConfig allSyncModel.AllSyncConfig) (appList []allSyncM
 	return allSyncResp.Data.ApplicationList, nil
 }
 
+func GetTenantList(asConfig allSyncModel.AllSyncConfig) (tenantList []allSyncModel.Tenant, err error) {
+	var allSyncResp allSyncModel.ToAppResponse
+
+	status, msg, respData := RequestAllSync(asConfig, "System/Tenant", http.MethodGet, nil, nil)
+	if status != 200 {
+		return tenantList, errors.New("Get All Tenant ERROR - " + msg)
+	}
+
+	if err := json.Unmarshal(respData, &allSyncResp); err != nil {
+		return tenantList, errors.New("JSON Unmarshal ERROR - " + err.Error())
+	}
+
+	return allSyncResp.Data.TenantList, nil
+}
+
+func GetTenantByID(asConfig allSyncModel.AllSyncConfig, tenantID string) (tenant allSyncModel.Tenant, err error) {
+	var allSyncResp allSyncModel.ToAppResponse
+
+	status, msg, respData := RequestAllSync(asConfig, fmt.Sprintf("System/Tenant/%s", tenantID), http.MethodGet, nil, nil)
+	if status != 200 {
+		return tenant, errors.New("Get Tenant ERROR - " + msg)
+	}
+
+	if err := json.Unmarshal(respData, &allSyncResp); err != nil {
+		return tenant, errors.New("JSON Unmarshal ERROR - " + err.Error())
+	}
+
+	return allSyncResp.Data.Tenant, nil
+}
+
 func GetApplicationByID(asConfig allSyncModel.AllSyncConfig, applicationID string) (app allSyncModel.Application, err error) {
 	var allSyncResp allSyncModel.ToAppResponse
 
