@@ -1000,10 +1000,10 @@ func GetIntegrationFlowByID(asConfig allSyncModel.AllSyncConfig, id string) (int
 	return allSyncResp.Data.IntegrationFlow, nil
 }
 
-func GetMicroService(asConfig allSyncModel.AllSyncConfig, filter bson.M) (msList []allSyncModel.MicroServiceResponse, err error) {
+func GetMicroServiceList(asConfig allSyncModel.AllSyncConfig, filter bson.M) (msList []allSyncModel.MicroServiceResponse, err error) {
 	var allSyncResp allSyncModel.ToAppResponse
 
-	statusCode, msg, respData := RequestAllSync(asConfig, "MicroServiceStatus", http.MethodGet, nil, filter)
+	statusCode, msg, respData := RequestAllSync(asConfig, "MicroService", http.MethodGet, nil, filter)
 	if statusCode != 200 {
 		return nil, errors.New(fmt.Sprintf("Get Micro Service ERROR - %v", msg))
 	}
