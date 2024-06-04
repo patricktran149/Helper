@@ -191,7 +191,7 @@ func RequestAllSyncSystem(asConfig allSyncModel.AllSyncConfig, path, method stri
 	return
 }
 
-func RequestOtherSystemAPIFromAllSyncFlow(asConfig allSyncModel.AllSyncConfig, flowAppID string, flowConfig allSyncModel.IntegrationFlowConfig, toMapData interface{}, postData []byte) (sendData, respData string, qLogs []allSyncModel.QueueLog, err error) {
+func RequestOtherSystemAPIFromAllSyncFlow(asConfig allSyncModel.AllSyncConfig, flowAppID string, flowConfig allSyncModel.IntegrationFlowConfig, toMapData interface{}, postData []byte, timeout time.Duration) (sendData, respData string, qLogs []allSyncModel.QueueLog, err error) {
 	var (
 		params  = make(map[string]interface{}, 0)
 		headers = make(map[string]interface{}, 0)
@@ -300,7 +300,7 @@ func RequestOtherSystemAPIFromAllSyncFlow(asConfig allSyncModel.AllSyncConfig, f
 					oauthBody = helper.JSONToString(flowConfig.OAuth.Body)
 				}
 
-				_, r, err = RequestOtherSystemAPI(oauthMethod, oauthURL, []byte(oauthBody), oauthParams, oauthHeaders)
+				_, r, err = RequestOtherSystemAPI(oauthMethod, oauthURL, []byte(oauthBody), oauthParams, oauthHeaders, timeout)
 				if err != nil {
 					err = errors.New("Request Access token ERROR - " + err.Error())
 					return
@@ -555,7 +555,7 @@ func RequestOtherSystemAPIFromAllSyncFlow(asConfig allSyncModel.AllSyncConfig, f
 	qLogs = LogsAddLog(qLogs, "Headers", helper.JSONToString(headers), "", "")
 	qLogs = LogsAddLog(qLogs, "Template", helper.JSONToString(toMapData), "", "")
 
-	sendData, respData, err = RequestOtherSystemAPI(apiMethod, apiURL, postData, params, headers)
+	sendData, respData, err = RequestOtherSystemAPI(apiMethod, apiURL, postData, params, headers, timeout)
 	if err != nil {
 		err = errors.New("Request Other System API ERROR - " + err.Error())
 		return
@@ -564,10 +564,19 @@ func RequestOtherSystemAPIFromAllSyncFlow(asConfig allSyncModel.AllSyncConfig, f
 	return
 }
 
-func RequestOtherSystemAPI(method, apiUrl string, data []byte, params, headers map[string]interface{}) (sendData, respData string, err error) {
+func RequestOtherSystemAPI(method, apiUrl string, data []byte, params, headers map[string]interface{}, timeout time.Duration) (sendData, respData string, err error) {
+	var ctx = context.Background()
+
+	if timeout > 0 {
+		ctxTmp, cancel := context.WithTimeout(context.Background(), timeout)
+		defer cancel()
+
+		ctx = ctxTmp
+	}
+
 	sendData = string(data)
 
-	req, err := http.NewRequest(method, apiUrl, strings.NewReader(sendData))
+	req, err := http.NewRequestWithContext(ctx, method, apiUrl, strings.NewReader(sendData))
 	if err != nil {
 		err = errors.New("Make request ERROR - " + err.Error())
 		return
@@ -589,6 +598,11 @@ func RequestOtherSystemAPI(method, apiUrl string, data []byte, params, headers m
 	client := &http.Client{}
 	res, err := client.Do(req)
 	if err != nil {
+		if errors.Is(err, context.DeadlineExceeded) {
+			err = errors.New("Send Request ERROR - Timed out ")
+			return
+		}
+
 		err = errors.New("Send Request ERROR - " + err.Error())
 		return
 	}
