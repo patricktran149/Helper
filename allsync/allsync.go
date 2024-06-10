@@ -8,10 +8,13 @@ import (
 	"crypto/sha1"
 	"crypto/sha256"
 	"crypto/sha512"
+	"crypto/tls"
+	"crypto/x509"
 	"database/sql"
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
+	"encoding/pem"
 	"errors"
 	"fmt"
 	_ "github.com/SAP/go-hdb/driver"
@@ -24,6 +27,7 @@ import (
 	"go.elastic.co/apm/module/apmsql"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
+	"golang.org/x/crypto/pkcs12"
 	"hash"
 	"io"
 	"math"
@@ -300,7 +304,7 @@ func RequestOtherSystemAPIFromAllSyncFlow(asConfig allSyncModel.AllSyncConfig, f
 					oauthBody = helper.JSONToString(flowConfig.OAuth.Body)
 				}
 
-				_, r, err = RequestOtherSystemAPI(oauthMethod, oauthURL, []byte(oauthBody), oauthParams, oauthHeaders, timeout)
+				_, r, err = RequestOtherSystemAPI(oauthMethod, oauthURL, []byte(oauthBody), oauthParams, oauthHeaders, timeout, flowConfig.OAuth.P12)
 				if err != nil {
 					err = errors.New("Request Access token ERROR - " + err.Error())
 					return
@@ -555,7 +559,7 @@ func RequestOtherSystemAPIFromAllSyncFlow(asConfig allSyncModel.AllSyncConfig, f
 	qLogs = LogsAddLog(qLogs, "Headers", helper.JSONToString(headers), "", "")
 	qLogs = LogsAddLog(qLogs, "Template", helper.JSONToString(toMapData), "", "")
 
-	sendData, respData, err = RequestOtherSystemAPI(apiMethod, apiURL, postData, params, headers, timeout)
+	sendData, respData, err = RequestOtherSystemAPI(apiMethod, apiURL, postData, params, headers, timeout, flowConfig.API.P12)
 	if err != nil {
 		err = errors.New("Request Other System API ERROR - " + err.Error())
 		return
@@ -564,8 +568,11 @@ func RequestOtherSystemAPIFromAllSyncFlow(asConfig allSyncModel.AllSyncConfig, f
 	return
 }
 
-func RequestOtherSystemAPI(method, apiUrl string, data []byte, params, headers map[string]interface{}, timeout time.Duration) (sendData, respData string, err error) {
-	var ctx = context.Background()
+func RequestOtherSystemAPI(method, apiUrl string, data []byte, params, headers map[string]interface{}, timeout time.Duration, p12 allSyncModel.P12) (sendData, respData string, err error) {
+	var (
+		client = &http.Client{}
+		ctx    = context.Background()
+	)
 
 	if timeout > 0 {
 		ctxTmp, cancel := context.WithTimeout(context.Background(), timeout)
@@ -595,7 +602,18 @@ func RequestOtherSystemAPI(method, apiUrl string, data []byte, params, headers m
 		req.Header.Set(k, fmt.Sprintf("%v", v))
 	}
 
-	client := &http.Client{}
+	if p12.FilePath != "" {
+		tlss, err := IncludeP12ToTLSConfig(p12)
+		if err != nil {
+			err = errors.New("Include P12 to TLS Config ERROR - " + err.Error())
+			return
+		}
+
+		client.Transport = &http.Transport{
+			TLSClientConfig: tlss,
+		}
+	}
+
 	res, err := client.Do(req)
 	if err != nil {
 		if errors.Is(err, context.DeadlineExceeded) {
@@ -1725,6 +1743,82 @@ func FunctionsDenomination(denoList []float64, payment float64) (amountList []fl
 	sort.Slice(amountList, func(i, j int) bool {
 		return amountList[i] < amountList[j]
 	})
+
+	return
+}
+
+func IncludeP12ToTLSConfig(p12 allSyncModel.P12) (t *tls.Config, err error) {
+	client := &http.Client{}
+
+	resp, err := client.Get(p12.FilePath)
+	if err != nil {
+		return t, errors.New("Get File ERROR - " + err.Error())
+	}
+	defer resp.Body.Close()
+
+	pfxData, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return t, errors.New("Read body ERROR - " + err.Error())
+	}
+
+	// Decode the PFX data to extract the private key, certificate, and CA certificates
+	blocks, err := pkcs12.ToPEM(pfxData, p12.Password)
+	if err != nil {
+		return t, errors.New("Decoding PFX file ERROR - " + err.Error())
+	}
+
+	var privateKeyPEM, certPEM []byte
+	caCertPool := x509.NewCertPool()
+
+	for _, b := range blocks {
+		if b.Type == "PRIVATE KEY" {
+			privateKeyPEM = pem.EncodeToMemory(b)
+		} else if b.Type == "CERTIFICATE" {
+			if certPEM == nil {
+				certPEM = pem.EncodeToMemory(b)
+			} else {
+				caCertPool.AppendCertsFromPEM(pem.EncodeToMemory(b))
+			}
+		}
+	}
+
+	// Load the certificate and private key into a tls.Certificate
+	tlsCert, err := tls.X509KeyPair(certPEM, privateKeyPEM)
+	if err != nil {
+		return t, errors.New("Loading certificate and key ERROR - " + err.Error())
+	}
+
+	// Load system root CAs
+	systemCertPool, err := x509.SystemCertPool()
+	if err != nil {
+		return t, errors.New("Loading system cert pool ERROR - " + err.Error())
+	}
+	if systemCertPool == nil {
+		systemCertPool = x509.NewCertPool()
+	}
+
+	// Extract CA certificates from the PFX file
+	var caCerts []*x509.Certificate
+	for _, b := range blocks {
+		if b.Type == "CERTIFICATE" {
+			cert, err := x509.ParseCertificate(b.Bytes)
+			if err != nil {
+				continue
+			}
+			caCerts = append(caCerts, cert)
+		}
+	}
+
+	// Add the CA certificates to the system CA pool
+	for _, cert := range caCerts {
+		systemCertPool.AddCert(cert)
+	}
+
+	// Create a TLS config with the certificate and combined CA certificate pool
+	t = &tls.Config{
+		Certificates: []tls.Certificate{tlsCert},
+		RootCAs:      systemCertPool,
+	}
 
 	return
 }
