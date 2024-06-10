@@ -603,7 +603,9 @@ func RequestOtherSystemAPI(method, apiUrl string, data []byte, params, headers m
 	}
 
 	if p12.FilePath != "" {
-		tlss, err := IncludeP12ToTLSConfig(p12)
+		var tlss *tls.Config
+
+		tlss, err = IncludeP12ToTLSConfig(p12)
 		if err != nil {
 			err = errors.New("Include P12 to TLS Config ERROR - " + err.Error())
 			return
