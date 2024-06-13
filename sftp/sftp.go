@@ -146,6 +146,19 @@ func (sc *SftpClient) GetFile(remoteFile, localFile string) (err error) {
 	return nil
 }
 
+func (sc *SftpClient) CheckExistingFile(remoteFile string) (exists bool, err error) {
+	_, err = sc.Stat(remoteFile)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return false, nil
+		} else {
+			return false, errors.New("Stat remote file ERROR - " + err.Error())
+		}
+	} else {
+		return true, nil
+	}
+}
+
 func (sc *SftpClient) RemoveEmptyFiles(remoteDirPath string) (err error) {
 	srcs, err := sc.ReadDir(remoteDirPath)
 	if err != nil {
