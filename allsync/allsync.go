@@ -31,8 +31,10 @@ import (
 	"hash"
 	"io"
 	"math"
+	"mime/multipart"
 	"net/http"
 	"net/url"
+	"os"
 	"reflect"
 	"regexp"
 	"sort"
@@ -1820,6 +1822,89 @@ func IncludeP12ToTLSConfig(p12 allSyncModel.P12) (t *tls.Config, err error) {
 	t = &tls.Config{
 		Certificates: []tls.Certificate{tlsCert},
 		RootCAs:      systemCertPool,
+	}
+
+	return
+}
+
+func PostTenantS3File(asConfig allSyncModel.AllSyncConfig, filePath string) (s3FilePath string, msg string, err error) {
+	// Open the file
+	file, err := os.Open(filePath)
+	if err != nil {
+		err = errors.New(fmt.Sprintf("Open file [%s] ERROR - %s", filePath, err.Error()))
+		return
+	}
+	defer file.Close()
+
+	// Create a buffer to hold the multipart form data
+	var requestBody bytes.Buffer
+	writer := multipart.NewWriter(&requestBody)
+
+	// Create the form file field
+	part, err := writer.CreateFormFile("file", filePath)
+	if err != nil {
+		err = errors.New(fmt.Sprintf("Creating form file ERROR - %s", err.Error()))
+		return
+	}
+
+	// Copy the file content to the form file field
+	if _, err = io.Copy(part, file); err != nil {
+		err = errors.New(fmt.Sprintf("Copying file content ERROR - %s", err.Error()))
+		return
+	}
+
+	// Close the writer to finalize the multipart form data
+	if err = writer.Close(); err != nil {
+		err = errors.New(fmt.Sprintf("Closing form file ERROR - %s", err.Error()))
+		return
+	}
+
+	// Create a new HTTP request with the multipart form data
+	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/Tenant/UploadS3", asConfig.SystemAPIURL), &requestBody)
+	if err != nil {
+		err = errors.New(fmt.Sprintf("Creating request ERROR - %s", err.Error()))
+		return
+	}
+
+	// Set the content type header
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+	req.Header.Set("tenantID", asConfig.TenantID)
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", asConfig.Token))
+
+	// Send the request using the default HTTP client
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		err = errors.New(fmt.Sprintf("Sending request ERROR - %s", err.Error()))
+		return
+	}
+
+	if resp != nil {
+		//if resp.Header.Get("Content-Encoding") == "gzip" {
+		var reader *gzip.Reader
+		reader, err = gzip.NewReader(resp.Body)
+		if err != nil {
+			err = errors.New(fmt.Sprintf("Gzip Read ERROR - %s", err.Error()))
+			return
+		}
+		defer reader.Close()
+
+		responseData, err := io.ReadAll(reader)
+		if err != nil {
+			err = errors.New(fmt.Sprintf("Read Uncompress data ERROR - %s", err.Error()))
+			return
+		}
+
+		var allSyncResp allSyncModel.ToAppResponse
+		if err = json.Unmarshal(responseData, &allSyncResp); err != nil {
+			err = errors.New(fmt.Sprintf("Json Unmarshal AllSync Response format ERROR - %s", err.Error()))
+			return
+		}
+		msg = allSyncResp.Message
+
+		s3FilePath = allSyncResp.Data.FileURL
+
+		defer resp.Body.Close()
 	}
 
 	return
