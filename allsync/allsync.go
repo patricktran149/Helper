@@ -1881,7 +1881,10 @@ func PostTenantS3File(asConfig allSyncModel.AllSyncConfig, filePath string) (s3F
 
 	if resp != nil {
 		//if resp.Header.Get("Content-Encoding") == "gzip" {
-		var reader *gzip.Reader
+		var (
+			reader       *gzip.Reader
+			responseData []byte
+		)
 		reader, err = gzip.NewReader(resp.Body)
 		if err != nil {
 			err = errors.New(fmt.Sprintf("Gzip Read ERROR - %s", err.Error()))
@@ -1889,7 +1892,7 @@ func PostTenantS3File(asConfig allSyncModel.AllSyncConfig, filePath string) (s3F
 		}
 		defer reader.Close()
 
-		responseData, err := io.ReadAll(reader)
+		responseData, err = io.ReadAll(reader)
 		if err != nil {
 			err = errors.New(fmt.Sprintf("Read Uncompress data ERROR - %s", err.Error()))
 			return
