@@ -1870,6 +1870,7 @@ func PostTenantS3File(asConfig allSyncModel.AllSyncConfig, filePath string) (s3F
 	req.Header.Set("Content-Type", writer.FormDataContentType())
 	req.Header.Set("tenantID", asConfig.TenantID)
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", asConfig.Token))
+	req.Header.Set("Accept-Encoding", "gzip,deflate,br")
 
 	// Send the request using the default HTTP client
 	client := &http.Client{}
