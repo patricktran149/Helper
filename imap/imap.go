@@ -27,7 +27,7 @@ func FetchUnreadEmails(imapClient *client.Client) (emails []*imap.Message, err e
 	emails = make([]*imap.Message, 0)
 
 	// Select INBOX
-	_, err = imapClient.Select("INBOX", false)
+	_, err = imapClient.Select("INBOX", true)
 	if err != nil {
 		return nil, errors.New("Select INBOX mailbox ERROR - " + err.Error())
 	}
