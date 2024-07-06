@@ -50,7 +50,7 @@ func FetchUnreadEmails(imapClient *client.Client) (emails []*imap.Message, err e
 
 	// Get the whole message body
 	section := &imap.BodySectionName{}
-	items := []imap.FetchItem{section.FetchItem()}
+	items := []imap.FetchItem{imap.FetchEnvelope, section.FetchItem()}
 
 	// Create a channel to receive messages
 	messages := make(chan *imap.Message, 10)
