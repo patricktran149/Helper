@@ -1,13 +1,20 @@
 package liquid
 
 import (
+	"bytes"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/patricktran149/liquid"
+	"io"
 	"math/rand"
+	"net/http"
 	"strings"
 )
 
-func NewEngine() *liquid.Engine {
+var chatGPTKey string
+
+func NewEngine(openAIAPIKey string) *liquid.Engine {
 	engine := liquid.NewEngine()
 	engine.RegisterFilter("right", rightNCharactersFilter)
 	engine.RegisterFilter("left", leftNCharactersFilter)
@@ -15,6 +22,10 @@ func NewEngine() *liquid.Engine {
 	engine.RegisterFilter("raw", rawstringFilter)
 	engine.RegisterFilter("randomInt", randomInt)
 	engine.RegisterFilter("randomString", randomString)
+
+	if openAIAPIKey != "" {
+		chatGPTKey = openAIAPIKey
+	}
 
 	return engine
 }
@@ -131,4 +142,104 @@ func intPow(base, exponent int) int {
 		result *= base
 	}
 	return result
+}
+
+// rightNCharactersFilter is a custom Liquid filter to extract the right n characters from a string.
+func chatGPT(input interface{}, request string) (string, error) {
+	str, ok := input.(string)
+	if !ok {
+		return "", fmt.Errorf("input is not a string")
+	}
+
+	request = fmt.Sprintf("%s : %s", request, str)
+
+	response, err := chatGPTRequest(chatGPTKey, request)
+	if err != nil {
+		return "", errors.New("Request ChatGPT ERROR - " + err.Error())
+	}
+
+	return response, nil
+}
+
+func chatGPTRequest(key, request string) (response string, err error) {
+	apiURL := "https://api.openai.com/v1/chat/completions"
+	// Define the request payload
+	requestBody := OpenAIRequest{
+		Model: "gpt-3.5-turbo-0125",
+		Messages: []struct {
+			Role    string `json:"role"`
+			Content string `json:"content"`
+		}{
+			{
+				Role:    "user",
+				Content: request,
+			},
+		},
+	}
+	requestBodyBytes, err := json.Marshal(requestBody)
+	if err != nil {
+		return "", errors.New("JSON Marshal Request body ERROR - " + err.Error())
+	}
+
+	// Create and send the HTTP request
+	req, err := http.NewRequest("POST", apiURL, bytes.NewBuffer(requestBodyBytes))
+	if err != nil {
+		return "", errors.New("Creating request ERROR - " + err.Error())
+	}
+	req.Header.Set("Authorization", "Bearer "+key)
+	req.Header.Set("Content-Type", "application/json")
+	//req.Header.Set("OpenAI-Organization", orgID)
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", errors.New("Making request ERROR - " + err.Error())
+	}
+	defer resp.Body.Close()
+
+	// Read and parse the response
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", errors.New("Reading response ERROR - " + err.Error())
+	}
+
+	var openAIResp OpenAIResponse
+	err = json.Unmarshal(body, &openAIResp)
+	if err != nil {
+		return "", errors.New("Unmarshalling response ERROR - " + err.Error())
+	}
+
+	// Check for errors in the response
+	if openAIResp.Error.Message != "" {
+		return "", errors.New("API ERROR - " + openAIResp.Error.Message)
+	}
+
+	// Print the response
+	for _, choice := range openAIResp.Choices {
+		response = choice.Message.Content
+	}
+
+	return response, nil
+}
+
+type OpenAIRequest struct {
+	Model    string `json:"model"`
+	Messages []struct {
+		Role    string `json:"role"`
+		Content string `json:"content"`
+	} `json:"messages"`
+}
+
+type OpenAIResponse struct {
+	Choices []struct {
+		Message struct {
+			Role    string `json:"role"`
+			Content string `json:"content"`
+		} `json:"message"`
+	} `json:"choices"`
+	Error struct {
+		Message string `json:"message"`
+		Type    string `json:"type"`
+		Code    string `json:"code"`
+	} `json:"error"`
 }
