@@ -22,6 +22,7 @@ func NewEngine(openAIAPIKey string) *liquid.Engine {
 	engine.RegisterFilter("raw", rawstringFilter)
 	engine.RegisterFilter("randomInt", randomInt)
 	engine.RegisterFilter("randomString", randomString)
+	engine.RegisterFilter("chatGPT", chatGPT)
 
 	if openAIAPIKey != "" {
 		chatGPTKey = openAIAPIKey
