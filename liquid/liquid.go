@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	helper "github.com/patricktran149/Helper"
 	"github.com/patricktran149/Helper/chatGPT"
 	"github.com/patricktran149/liquid"
 	"go.mongodb.org/mongo-driver/bson"
@@ -172,10 +173,12 @@ func chatGPTFilter(input interface{}, request string) (string, error) {
 	return response, nil
 }
 
-func mongodbLookup(input interface{}, tableName, fieldName string) (array []bson.M, err error) {
+func mongodbLookup(input interface{}, tableName, fieldName string) (arrStr string, err error) {
+	var array []bson.M
+
 	str, ok := input.(string)
 	if !ok {
-		return nil, fmt.Errorf("Input is not a string ")
+		return "", fmt.Errorf("Input is not a string ")
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
@@ -194,6 +197,8 @@ func mongodbLookup(input interface{}, tableName, fieldName string) (array []bson
 		err = errors.New("Cursor.Err() ERROR - " + err.Error())
 		return
 	}
+
+	arrStr = helper.JSONToString(array)
 
 	return
 }
