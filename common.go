@@ -452,6 +452,10 @@ func RegexStringLike(str string) (b bson.M) {
 	return bson.M{"$regex": primitive.Regex{Pattern: EscapeToRegex(str), Options: "i"}}
 }
 
+func RegexStringLikeAnyCase(str string) bson.M {
+	return bson.M{"$regex": primitive.Regex{Pattern: fmt.Sprintf("^%s$", EscapeToRegex(str)), Options: "i"}}
+}
+
 func IsZeroInterface(x interface{}) bool {
 	return reflect.DeepEqual(x, reflect.Zero(reflect.TypeOf(x)).Interface())
 }
