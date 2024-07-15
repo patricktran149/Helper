@@ -29,7 +29,7 @@ func NewEngine(openAIAPIKey string, mongoDatabase *mongo.Database) *liquid.Engin
 	engine.RegisterFilter("randomInt", randomInt)
 	engine.RegisterFilter("randomString", randomString)
 	engine.RegisterFilter("chatGPT", chatGPTFilter)
-	engine.RegisterFilter("mongodbLookup", mongodbLookup)
+	engine.RegisterFilter("dbLookup", dbLookup)
 
 	if openAIAPIKey != "" && chatGPTKey != openAIAPIKey {
 		chatGPTKey = openAIAPIKey
@@ -173,7 +173,7 @@ func chatGPTFilter(input interface{}, request string) (string, error) {
 	return response, nil
 }
 
-func mongodbLookup(input interface{}, tableName, fieldName string) (arrStr string, err error) {
+func dbLookup(input interface{}, tableName, fieldName string) (arrStr string, err error) {
 	var array []bson.M
 
 	str, ok := input.(string)
