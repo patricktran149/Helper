@@ -186,7 +186,7 @@ func dbLookup(input interface{}, tableName, fieldName string) (arrStr string, er
 
 	opts := options.Find().SetLimit(10)
 
-	cursor, err := mgoDb.Collection(tableName).Find(ctx, bson.M{fieldName: helper.RegexStringLikeAnyCase(str)}, opts)
+	cursor, err := mgoDb.Collection(tableName).Find(ctx, bson.M{fieldName: helper.RegexStringLike(str)}, opts)
 	defer cursor.Close(ctx)
 	if err = cursor.All(ctx, &array); err != nil {
 		err = errors.New("Cursor All ERROR - " + err.Error())
