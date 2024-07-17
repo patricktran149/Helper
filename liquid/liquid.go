@@ -2,6 +2,10 @@ package liquid
 
 import (
 	"context"
+	"crypto/aes"
+	"crypto/cipher"
+	cryptoRand "crypto/rand"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	helper "github.com/patricktran149/Helper"
@@ -10,6 +14,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"io"
 	"math/rand"
 	"strings"
 	"time"
@@ -30,6 +35,8 @@ func NewEngine(openAIAPIKey string, mongoDatabase *mongo.Database) *liquid.Engin
 	engine.RegisterFilter("randomString", randomString)
 	engine.RegisterFilter("chatGPT", chatGPTFilter)
 	engine.RegisterFilter("dbLookup", dbLookup)
+	engine.RegisterFilter("aesEncode", aesEncode)
+	engine.RegisterFilter("aesDecode", aesDecode)
 
 	if openAIAPIKey != "" && chatGPTKey != openAIAPIKey {
 		chatGPTKey = openAIAPIKey
@@ -201,4 +208,72 @@ func dbLookup(input interface{}, tableName, fieldName string) (arrStr string, er
 	arrStr = helper.JSONToString(array)
 
 	return
+}
+
+func aesEncode(input interface{}, key string) (string, error) {
+	str, ok := input.(string)
+	if !ok {
+		return "", errors.New("Input is not a string ")
+	}
+
+	if len(key) != 32 {
+		return "", errors.New("Key length is not 32 ")
+	}
+
+	block, err := aes.NewCipher([]byte(key))
+	if err != nil {
+		return "", errors.New("AES New Cipher ERROR - " + err.Error())
+	}
+
+	aesGCM, err := cipher.NewGCM(block)
+	if err != nil {
+		return "", errors.New("Cipher New GCM ERROR - " + err.Error())
+	}
+
+	nonce := make([]byte, aesGCM.NonceSize())
+	if _, err = io.ReadFull(cryptoRand.Reader, nonce); err != nil {
+		return "", errors.New("Read Nonce ERROR - " + err.Error())
+	}
+
+	ciphertext := aesGCM.Seal(nil, nonce, []byte(str), nil)
+	return base64.StdEncoding.EncodeToString(append(nonce, ciphertext...)), nil
+}
+
+func aesDecode(input interface{}, key string) (string, error) {
+	str, ok := input.(string)
+	if !ok {
+		return "", errors.New("Input is not a string ")
+	}
+
+	if len(key) != 32 {
+		return "", errors.New("Key length is not 32 ")
+	}
+
+	ciphertext, err := base64.StdEncoding.DecodeString(str)
+	if err != nil {
+		return "", err
+	}
+
+	block, err := aes.NewCipher([]byte(key))
+	if err != nil {
+		return "", errors.New("AES New Cipher ERROR - " + err.Error())
+	}
+
+	aesGCM, err := cipher.NewGCM(block)
+	if err != nil {
+		return "", errors.New("Cipher New GCM ERROR - " + err.Error())
+	}
+
+	nonceSize := aesGCM.NonceSize()
+	if len(ciphertext) < nonceSize {
+		return "", errors.New("Cipher text too short ")
+	}
+
+	nonce, ciphertext := ciphertext[:nonceSize], ciphertext[nonceSize:]
+	plaintext, err := aesGCM.Open(nil, nonce, ciphertext, nil)
+	if err != nil {
+		return "", errors.New("AESGCM open Nonce ERROR - " + err.Error())
+	}
+
+	return string(plaintext), nil
 }

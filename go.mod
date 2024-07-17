@@ -10,11 +10,12 @@ require (
 	github.com/aws/aws-sdk-go v1.48.10
 	github.com/basgys/goxml2json v1.1.0
 	github.com/denisenkom/go-mssqldb v0.12.3
+	github.com/emersion/go-imap v1.2.1
 	github.com/jinzhu/copier v0.4.0
 	github.com/maja42/goval v1.3.1
 	github.com/mbordner/kazaam v3.4.7+incompatible
 	github.com/patricktran149/AllSync.Model v0.0.0-20240617104716-b8d22cefc952
-	github.com/patricktran149/liquid v0.0.0-20231206032451-138980c5ec17
+	github.com/patricktran149/liquid v0.0.0-20240717044258-e806678211bc
 	github.com/pkg/sftp v1.13.6
 	github.com/scorredoira/email v0.0.0-20191107070024-dc7b732c55da
 	github.com/sijms/go-ora/v2 v2.7.24
@@ -30,7 +31,6 @@ require (
 	github.com/elastic/go-licenser v0.3.1 // indirect
 	github.com/elastic/go-sysinfo v1.1.1 // indirect
 	github.com/elastic/go-windows v1.0.0 // indirect
-	github.com/emersion/go-imap v1.2.1 // indirect
 	github.com/emersion/go-sasl v0.0.0-20200509203442-7bfe0ed36a21 // indirect
 	github.com/gofrs/uuid v3.2.0+incompatible // indirect
 	github.com/golang-sql/civil v0.0.0-20190719163853-cb61b32ac6fe // indirect
