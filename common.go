@@ -465,18 +465,25 @@ func CompareRequestFields(requestModel, model interface{}) bson.M {
 	if requestVal.Kind() == reflect.Map {
 		for x := 0; x < val.Type().NumField(); x++ {
 			compareModelFieldName := strings.Split(val.Type().Field(x).Tag.Get("bson"), ",")[0]
-			compareModelFieldDataType := val.Type().Field(x).Type.Kind().String()
+			compareModelFieldDataType := val.Type().Field(x).Type.String()
+			compareModelFieldDataKind := val.Type().Field(x).Type.Kind().String()
 
 			for _, e := range reflect.ValueOf(requestModel).MapKeys() {
 				v := reflect.ValueOf(requestModel).MapIndex(e)
 				requestFieldName := e.Interface()
-				compareModelFieldDataKind := val.Type().Field(x).Type.Kind().String()
 
 				if requestFieldName == compareModelFieldName {
 					switch t := v.Interface().(type) {
 					case string:
-						if compareModelFieldDataType == "string" || compareModelFieldDataType == "primitive.ObjectID" {
+						if compareModelFieldDataType == "string" {
 							returnBson[e.String()] = t
+						}
+
+						if compareModelFieldDataType == "primitive.ObjectID" {
+							objID, err := primitive.ObjectIDFromHex(t)
+							if err == nil {
+								returnBson[e.String()] = objID
+							}
 						}
 					case bool:
 						if compareModelFieldDataType == "bool" {
