@@ -1,31 +1,20 @@
 package liquid
 
 import (
-	"context"
 	"crypto/aes"
 	"crypto/cipher"
 	cryptoRand "crypto/rand"
 	"encoding/base64"
 	"errors"
 	"fmt"
-	helper "github.com/patricktran149/Helper"
-	"github.com/patricktran149/Helper/chatGPT"
-	"github.com/patricktran149/liquid"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 	"io"
 	"math/rand"
 	"strings"
-	"time"
+
+	"github.com/patricktran149/liquid"
 )
 
-var (
-	chatGPTKey      string
-	mgoTenantClient = make(map[string]*mongo.Client)
-)
-
-func NewEngine(openAIAPIKey string, tenantID string, mgoClient *mongo.Client) *liquid.Engine {
+func NewEngine() *liquid.Engine {
 	engine := liquid.NewEngine()
 	engine.RegisterFilter("right", rightNCharactersFilter)
 	engine.RegisterFilter("left", leftNCharactersFilter)
@@ -33,19 +22,8 @@ func NewEngine(openAIAPIKey string, tenantID string, mgoClient *mongo.Client) *l
 	engine.RegisterFilter("raw", rawstringFilter)
 	engine.RegisterFilter("randomInt", randomInt)
 	engine.RegisterFilter("randomString", randomString)
-	engine.RegisterFilter("chatGPT", chatGPTFilter)
-	engine.RegisterFilter("dbLookup", dbLookup)
 	engine.RegisterFilter("aesEncode", aesEncode)
 	engine.RegisterFilter("aesDecode", aesDecode)
-
-	if openAIAPIKey != "" && chatGPTKey != openAIAPIKey {
-		chatGPTKey = openAIAPIKey
-	}
-
-	_, ok := mgoTenantClient[tenantID]
-	if !ok && mgoClient != nil {
-		mgoTenantClient[tenantID] = mgoClient
-	}
 
 	return engine
 }
@@ -162,53 +140,6 @@ func intPow(base, exponent int) int {
 		result *= base
 	}
 	return result
-}
-
-// rightNCharactersFilter is a custom Liquid filter to extract the right n characters from a string.
-func chatGPTFilter(input interface{}, request string) (string, error) {
-	str, ok := input.(string)
-	if !ok {
-		return "", errors.New("Input is not a string ")
-	}
-
-	request = fmt.Sprintf("%s : %s", request, str)
-
-	response, err := chatGPT.Request(chatGPTKey, request)
-	if err != nil {
-		return "", errors.New("Request ChatGPT ERROR - " + err.Error())
-	}
-
-	return response, nil
-}
-
-func dbLookup(input interface{}, tenantID, tableName, fieldName string) (arrStr string, err error) {
-	var array []bson.M
-
-	str, ok := input.(string)
-	if !ok {
-		return "", fmt.Errorf("Input is not a string ")
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
-	defer cancel()
-
-	opts := options.Find().SetLimit(10)
-
-	cursor, err := mgoTenantClient[tenantID].Database(tenantID).Collection(tableName).Find(ctx, bson.M{fieldName: helper.RegexStringLike(str)}, opts)
-	defer cursor.Close(ctx)
-	if err = cursor.All(ctx, &array); err != nil {
-		err = errors.New("Cursor All ERROR - " + err.Error())
-		return
-	}
-
-	if err = cursor.Err(); err != nil {
-		err = errors.New("Cursor.Err() ERROR - " + err.Error())
-		return
-	}
-
-	arrStr = helper.JSONToString(array)
-
-	return
 }
 
 func aesEncode(input interface{}, key string) (string, error) {
