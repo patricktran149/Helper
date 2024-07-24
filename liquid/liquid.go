@@ -21,11 +21,11 @@ import (
 )
 
 var (
-	chatGPTKey string
-	mgoDb      *mongo.Database
+	chatGPTKey      string
+	mgoTenantClient = make(map[string]*mongo.Client)
 )
 
-func NewEngine(openAIAPIKey string, mongoDatabase *mongo.Database) *liquid.Engine {
+func NewEngine(openAIAPIKey string, tenantID string, mgoClient *mongo.Client) *liquid.Engine {
 	engine := liquid.NewEngine()
 	engine.RegisterFilter("right", rightNCharactersFilter)
 	engine.RegisterFilter("left", leftNCharactersFilter)
@@ -42,8 +42,9 @@ func NewEngine(openAIAPIKey string, mongoDatabase *mongo.Database) *liquid.Engin
 		chatGPTKey = openAIAPIKey
 	}
 
-	if mongoDatabase != nil {
-		mgoDb = mongoDatabase
+	_, ok := mgoTenantClient[tenantID]
+	if !ok && mgoClient != nil {
+		mgoTenantClient[tenantID] = mgoClient
 	}
 
 	return engine
@@ -180,7 +181,7 @@ func chatGPTFilter(input interface{}, request string) (string, error) {
 	return response, nil
 }
 
-func dbLookup(input interface{}, tableName, fieldName string) (arrStr string, err error) {
+func dbLookup(input interface{}, tenantID, tableName, fieldName string) (arrStr string, err error) {
 	var array []bson.M
 
 	str, ok := input.(string)
@@ -193,7 +194,7 @@ func dbLookup(input interface{}, tableName, fieldName string) (arrStr string, er
 
 	opts := options.Find().SetLimit(10)
 
-	cursor, err := mgoDb.Collection(tableName).Find(ctx, bson.M{fieldName: helper.RegexStringLike(str)}, opts)
+	cursor, err := mgoTenantClient[tenantID].Database(tenantID).Collection(tableName).Find(ctx, bson.M{fieldName: helper.RegexStringLike(str)}, opts)
 	defer cursor.Close(ctx)
 	if err = cursor.All(ctx, &array); err != nil {
 		err = errors.New("Cursor All ERROR - " + err.Error())
