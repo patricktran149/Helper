@@ -12,7 +12,7 @@ func Request(key, request string) (response string, err error) {
 	apiURL := "https://api.openai.com/v1/chat/completions"
 	// Define the request payload
 	requestBody := OpenAIRequest{
-		Model: "gpt-3.5-turbo-0125",
+		Model: "gpt-4",
 		Messages: []Message{
 			{
 				Role:    "user",
