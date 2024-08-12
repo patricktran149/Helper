@@ -1341,9 +1341,19 @@ func SQLExecuteQuery(db *sql.DB, query string) (objects []map[string]interface{}
 			case []byte:
 				// Convert []byte to string for text-like data types
 				colType := columnTypes[i].DatabaseTypeName()
-				if colType == "VARCHAR" || colType == "TEXT" || colType == "NVARCHAR" {
+				switch colType {
+				case "VARCHAR", "TEXT", "NVARCHAR":
 					rowMap[colName] = string(v)
-				} else {
+				case "DECIMAL":
+					{
+						d, err := strconv.ParseFloat(string(v), 64)
+						if err != nil {
+							return objects, errors.New(fmt.Sprintf("Parse Decimal [%v] ERROR - %s", v, err.Error()))
+						}
+
+						rowMap[colName] = d
+					}
+				default:
 					rowMap[colName] = v // Keep []byte for other binary-like data types
 				}
 			case time.Time:
@@ -1511,9 +1521,19 @@ func OracleExecuteQuery(db *sql.DB, query string) (objects []map[string]interfac
 			case []byte:
 				// Convert []byte to string for text-like data types
 				colType := columnTypes[i].DatabaseTypeName()
-				if colType == "VARCHAR" || colType == "TEXT" || colType == "NVARCHAR" {
+				switch colType {
+				case "VARCHAR", "TEXT", "NVARCHAR":
 					rowMap[colName] = string(v)
-				} else {
+				case "DECIMAL":
+					{
+						d, err := strconv.ParseFloat(string(v), 64)
+						if err != nil {
+							return objects, errors.New(fmt.Sprintf("Parse Decimal [%v] ERROR - %s", v, err.Error()))
+						}
+
+						rowMap[colName] = d
+					}
+				default:
 					rowMap[colName] = v // Keep []byte for other binary-like data types
 				}
 			case time.Time:
@@ -1686,9 +1706,19 @@ func SAPHanaExecuteQuery(db *sql.DB, query string) (objects []map[string]interfa
 			case []byte:
 				// Convert []byte to string for text-like data types
 				colType := columnTypes[i].DatabaseTypeName()
-				if colType == "VARCHAR" || colType == "TEXT" || colType == "NVARCHAR" {
+				switch colType {
+				case "VARCHAR", "TEXT", "NVARCHAR":
 					rowMap[colName] = string(v)
-				} else {
+				case "DECIMAL":
+					{
+						d, err := strconv.ParseFloat(string(v), 64)
+						if err != nil {
+							return objects, errors.New(fmt.Sprintf("Parse Decimal [%v] ERROR - %s", v, err.Error()))
+						}
+
+						rowMap[colName] = d
+					}
+				default:
 					rowMap[colName] = v // Keep []byte for other binary-like data types
 				}
 			case time.Time:
