@@ -24,6 +24,8 @@ func NewEngine() *liquid.Engine {
 	engine.RegisterFilter("randomString", randomString)
 	engine.RegisterFilter("aesEncode", aesEncode)
 	engine.RegisterFilter("aesDecode", aesDecode)
+	engine.RegisterFilter("subtractLeft", subtractLeft)
+	engine.RegisterFilter("subtractRight", subtractRight)
 
 	return engine
 }
@@ -208,4 +210,42 @@ func aesDecode(input interface{}, key string) (string, error) {
 	}
 
 	return string(plaintext), nil
+}
+
+// Remove everything after the last splitCharacter including the splitCharacter
+func subtractRight(input interface{}, splitChar string) (string, error) {
+	str, ok := input.(string)
+	if !ok {
+		return "", fmt.Errorf("input is not a string")
+	}
+
+	if str == "" {
+		return "", nil
+	}
+
+	lastDashIndex := strings.LastIndex(str, splitChar)
+	if lastDashIndex == -1 {
+		return str, nil
+	}
+
+	return str[:lastDashIndex], nil
+}
+
+// Remove everything before the first splitCharacter including the splitCharacter
+func subtractLeft(input interface{}, splitChar string) (string, error) {
+	str, ok := input.(string)
+	if !ok {
+		return "", fmt.Errorf("input is not a string")
+	}
+
+	if str == "" {
+		return "", nil
+	}
+
+	firstDashIndex := strings.Index(str, splitChar)
+	if firstDashIndex == -1 {
+		return str, nil
+	}
+
+	return str[firstDashIndex+1:], nil
 }
