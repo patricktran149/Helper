@@ -1420,6 +1420,14 @@ func OracleConnect(oracleConf allSyncModel.OracleConfig) (db *sql.DB, err error)
 }
 
 func OracleExecuteQuery(db *sql.DB, query string) (objects []map[string]interface{}, err error) {
+	// Defer a function that recovers from panic and sets the error
+	defer func() {
+		if r := recover(); r != nil {
+			// Convert the panic into an error and assign it to the named error return variable
+			err = fmt.Errorf("panic occurred: %v", r)
+		}
+	}()
+
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 
