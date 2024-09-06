@@ -880,18 +880,6 @@ func UpdateQueueStatus(asConfig allSyncModel.AllSyncConfig, queueType string, qu
 			retryDays = 1
 		}
 	}
-	retryMsg := fmt.Sprintf("Retry times: %d. Retry days: %d", retryTimes, retryDays)
-
-	if !queueFlag {
-		queue.Message = errMsg + retryMsg
-	} //else {
-	//	queue.Message = errMsg
-	//}
-	if retryTimes >= maxRetryTimes && retryDays >= maxRetryDays {
-		queueFlag = true
-		queue.IsSkip = true
-		errMsg = "SKIP - " + errMsg
-	}
 
 	queue.RetryTimes = retryTimes
 	queue.RetryDays = retryDays
@@ -899,8 +887,18 @@ func UpdateQueueStatus(asConfig allSyncModel.AllSyncConfig, queueType string, qu
 	queue.Status = status
 	queue.SendData = sendData
 	queue.ResponseData = respData
-	//queue.Message = errMsg
+	queue.Message = errMsg
 	queue.UpdatedBy = "Integration API"
+
+	if !queueFlag {
+		queue.Message = fmt.Sprintf("%s - Retry times: %d. Retry days: %d", errMsg, retryTimes, retryDays)
+	}
+
+	if retryTimes >= maxRetryTimes && retryDays >= maxRetryDays {
+		queue.Flag = true
+		queue.IsSkip = true
+		queue.Message = "SKIP - " + errMsg
+	}
 
 	_ = copier.Copy(&queueReq, &queue)
 
