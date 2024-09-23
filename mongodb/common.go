@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-func AggregateQuery(db *mongo.Database, table, query string) (bytes []byte, err error) {
+func AggregateQuery(db *mongo.Database, table, query string, firstMatch bson.D, limit int) (bytes []byte, err error) {
 	var (
 		queryArrayM []bson.M
 		pipeline    mongo.Pipeline
@@ -23,7 +23,15 @@ func AggregateQuery(db *mongo.Database, table, query string) (bytes []byte, err 
 		return bytes, errors.New("Unmarshal raw Query to Array Bson M ERROR - " + err.Error())
 	}
 
-	pipeline = ArrayBsonMToD(queryArrayM)
+	bsonDArray := ArrayBsonMToD(queryArrayM)
+
+	bsonDArray = append([]bson.D{firstMatch}, bsonDArray...)
+
+	if limit > 0 {
+		bsonDArray = append(bsonDArray, bson.D{{"$limit", limit}})
+	}
+
+	pipeline = bsonDArray
 
 	cursor, err := db.Collection(table).Aggregate(ctx, pipeline)
 	if err != nil {
@@ -32,7 +40,6 @@ func AggregateQuery(db *mongo.Database, table, query string) (bytes []byte, err 
 
 	if err = cursor.All(ctx, &result); err != nil {
 		return bytes, errors.New("Cursor All ERROR - " + err.Error())
-
 	}
 
 	bytes, err = json.Marshal(result)
