@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-func AggregateQuery(db *mongo.Database, table, query string, firstMatch bson.D, limit int) (bytes []byte, err error) {
+func AggregateQuery(db *mongo.Database, table, query string, beginStages []bson.D, limit int) (bytes []byte, err error) {
 	var (
 		queryArrayM []bson.M
 		pipeline    mongo.Pipeline
@@ -25,7 +25,9 @@ func AggregateQuery(db *mongo.Database, table, query string, firstMatch bson.D, 
 
 	bsonDArray := ArrayBsonMToD(queryArrayM)
 
-	bsonDArray = append([]bson.D{firstMatch}, bsonDArray...)
+	if len(beginStages) > 0 {
+		bsonDArray = append(beginStages, bsonDArray...)
+	}
 
 	if limit > 0 {
 		bsonDArray = append(bsonDArray, bson.D{{"$limit", limit}})
