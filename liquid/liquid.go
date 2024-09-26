@@ -7,7 +7,6 @@ import (
 	cryptoRand "crypto/rand"
 	"crypto/sha256"
 	"encoding/base64"
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"io"
@@ -272,7 +271,7 @@ func hmacSHA256(input interface{}, secretKey string) (string, error) {
 	}
 
 	// Get the final HMAC result
-	return hex.EncodeToString(mac.Sum(nil)), nil
+	return byteToHex(mac.Sum(nil)), nil
 }
 
 func stringToHex(input interface{}) (string, error) {
@@ -281,5 +280,14 @@ func stringToHex(input interface{}) (string, error) {
 		return "", errors.New("Input is not a string ")
 	}
 
-	return hex.EncodeToString([]byte(data)), nil
+	return byteToHex([]byte(data)), nil
+}
+
+func byteToHex(bytes []byte) string {
+	var sign string
+	for _, b := range bytes {
+		hex := fmt.Sprintf("%02X", b) // Converts each byte to its uppercase hex representation
+		sign += hex
+	}
+	return sign
 }
