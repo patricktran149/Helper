@@ -3,8 +3,11 @@ package liquid
 import (
 	"crypto/aes"
 	"crypto/cipher"
+	"crypto/hmac"
 	cryptoRand "crypto/rand"
+	"crypto/sha256"
 	"encoding/base64"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"io"
@@ -26,6 +29,8 @@ func NewEngine() *liquid.Engine {
 	engine.RegisterFilter("aesDecode", aesDecode)
 	engine.RegisterFilter("subtractLeft", subtractLeft)
 	engine.RegisterFilter("subtractRight", subtractRight)
+	engine.RegisterFilter("hmacSHA256", hmacSHA256)
+	engine.RegisterFilter("stringToHex", stringToHex)
 
 	return engine
 }
@@ -248,4 +253,33 @@ func subtractLeft(input interface{}, splitChar string) (string, error) {
 	}
 
 	return str[firstDashIndex+1:], nil
+}
+
+func hmacSHA256(input interface{}, secretKey string) (string, error) {
+	data, ok := input.(string)
+	if !ok {
+		return "", errors.New("Input is not a string ")
+	}
+
+	// Create a new HMAC by defining the hash type and the key
+	key := []byte(secretKey)
+	mac := hmac.New(sha256.New, key)
+
+	// Write data to it
+	_, err := mac.Write([]byte(data))
+	if err != nil {
+		return "", errors.New("HMAC Write ERROR - " + err.Error())
+	}
+
+	// Get the final HMAC result
+	return hex.EncodeToString(mac.Sum(nil)), nil
+}
+
+func stringToHex(input interface{}) (string, error) {
+	data, ok := input.(string)
+	if !ok {
+		return "", errors.New("Input is not a string ")
+	}
+
+	return hex.EncodeToString([]byte(data)), nil
 }
