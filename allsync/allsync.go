@@ -1141,6 +1141,21 @@ func UpdateMicroServiceStatus(asConfig allSyncModel.AllSyncConfig, id string, ms
 	return allSyncResp.Data.MicroServiceStatus, nil
 }
 
+func GetOAuth2TokenByAppID(asConfig allSyncModel.AllSyncConfig, appID string) (token allSyncModel.OAuth2Token, err error) {
+	var allSyncResp allSyncModel.ToAppResponse
+
+	status, msg, respData := RequestAllSync(asConfig, fmt.Sprintf("OAuth2Token/applicationID/%s", appID), http.MethodGet, nil, nil)
+	if status != 200 {
+		return token, errors.New("Get OAuth2Token by App ID ERROR - " + msg)
+	}
+
+	if err := json.Unmarshal(respData, &allSyncResp); err != nil {
+		return token, errors.New("JSON Unmarshal ERROR - " + err.Error())
+	}
+
+	return allSyncResp.Data.OAuth2Token, nil
+}
+
 func HMACTimeStampFormatConvert(dateStr string) string {
 	r := strings.NewReplacer("YYYY", "2006",
 		"MM", "01",
