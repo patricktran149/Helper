@@ -1156,6 +1156,21 @@ func GetOAuth2TokenByAppID(asConfig allSyncModel.AllSyncConfig, appID string) (t
 	return allSyncResp.Data.OAuth2Token, nil
 }
 
+func UpdateOAuth2Token(asConfig allSyncModel.AllSyncConfig, id string, tokenReq bson.M) (tokenResp allSyncModel.OAuth2Token, err error) {
+	var allSyncResp allSyncModel.ToAppResponse
+
+	status, msg, respData := RequestAllSync(asConfig, fmt.Sprintf("OAuth2Token/%s", id), http.MethodPut, tokenReq, nil)
+	if status != 200 {
+		return tokenResp, errors.New("Get All Application ERROR - " + msg)
+	}
+
+	if err := json.Unmarshal(respData, &allSyncResp); err != nil {
+		return tokenResp, errors.New("JSON Unmarshal ERROR - " + err.Error())
+	}
+
+	return allSyncResp.Data.OAuth2Token, nil
+}
+
 func HMACTimeStampFormatConvert(dateStr string) string {
 	r := strings.NewReplacer("YYYY", "2006",
 		"MM", "01",
