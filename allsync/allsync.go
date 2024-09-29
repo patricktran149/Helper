@@ -1156,6 +1156,21 @@ func GetOAuth2TokenByAppID(asConfig allSyncModel.AllSyncConfig, appID string) (t
 	return allSyncResp.Data.OAuth2Token, nil
 }
 
+func CreateOAuth2Token(asConfig allSyncModel.AllSyncConfig, tokenReq allSyncModel.OAuth2TokenRequest) (tokenResp allSyncModel.OAuth2Token, err error) {
+	var allSyncResp allSyncModel.ToAppResponse
+
+	status, msg, respData := RequestAllSync(asConfig, "OAuth2Token", http.MethodPost, tokenReq, nil)
+	if status != 200 {
+		return tokenResp, errors.New("Get All Application ERROR - " + msg)
+	}
+
+	if err := json.Unmarshal(respData, &allSyncResp); err != nil {
+		return tokenResp, errors.New("JSON Unmarshal ERROR - " + err.Error())
+	}
+
+	return allSyncResp.Data.OAuth2Token, nil
+}
+
 func UpdateOAuth2Token(asConfig allSyncModel.AllSyncConfig, id string, tokenReq bson.M) (tokenResp allSyncModel.OAuth2Token, err error) {
 	var allSyncResp allSyncModel.ToAppResponse
 
