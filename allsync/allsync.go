@@ -406,6 +406,18 @@ func RequestOtherSystemAPIFromAllSyncFlow(asConfig allSyncModel.AllSyncConfig, f
 				}
 			}
 		}
+	case allSyncModel.AuthenticationTypeOAuth2:
+		{
+			token, err := GetOAuth2TokenByAppID(asConfig, flowAppID)
+			if err != nil {
+				if err != nil {
+					err = errors.New("Get OAuth2Token By AppID ERROR - " + err.Error())
+					return
+				}
+			}
+
+			headers["Authorization"] = fmt.Sprintf("Bearer %s", token.Token.ID)
+		}
 	default:
 		break
 	}
