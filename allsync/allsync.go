@@ -767,6 +767,21 @@ func UpdateApplication(asConfig allSyncModel.AllSyncConfig, app allSyncModel.App
 	return allSyncResp.Data.Application, nil
 }
 
+func UpdateApplicationConfig(asConfig allSyncModel.AllSyncConfig, appID, configID string, configReq bson.M) (appConfig allSyncModel.ApplicationConfiguration, err error) {
+	var allSyncResp allSyncModel.ToAppResponse
+
+	status, msg, respData := RequestAllSync(asConfig, fmt.Sprintf("Application/%s/Configuration/%s", appID, configID), http.MethodPut, configReq, nil)
+	if status != 200 {
+		return appConfig, errors.New("Get All Application ERROR - " + msg)
+	}
+
+	if err := json.Unmarshal(respData, &allSyncResp); err != nil {
+		return appConfig, errors.New("JSON Unmarshal ERROR - " + err.Error())
+	}
+
+	return allSyncResp.Data.ApplicationConfiguration, nil
+}
+
 func GetQueueIncomingList(asConfig allSyncModel.AllSyncConfig, applicationID string, params map[string]interface{}) (queues []allSyncModel.Queue, err error) {
 	var allSyncResp allSyncModel.ToAppResponse
 
