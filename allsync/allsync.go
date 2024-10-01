@@ -199,10 +199,9 @@ func RequestAllSyncSystem(asConfig allSyncModel.AllSyncConfig, path, method stri
 
 func RequestOtherSystemAPIFromAllSyncFlow(asConfig allSyncModel.AllSyncConfig, flowAppID string, flowConfig allSyncModel.IntegrationFlowConfig, toMapData interface{}, postData []byte, timeout time.Duration) (sendData, respData string, qLogs []allSyncModel.QueueLog, err error) {
 	var (
-		params  = make(map[string]interface{}, 0)
-		headers = make(map[string]interface{}, 0)
-		mapData = make(map[string]interface{}, 0)
-		//funcName = "RequestOtherSystemAPIFromAllSyncFlow"
+		params  = make(map[string]interface{})
+		headers = make(map[string]interface{})
+		mapData = make(map[string]interface{})
 	)
 
 	if toMapData != nil {
@@ -245,14 +244,14 @@ func RequestOtherSystemAPIFromAllSyncFlow(asConfig allSyncModel.AllSyncConfig, f
 	switch authType {
 	case allSyncModel.AuthenticationTypeHmac:
 		{
-			var headers = make(map[string]interface{}, 0)
+			var headersHmac = make(map[string]interface{}, 0)
 
 			if flowConfig.API.HMAC.AppIDName != "" {
-				headers[flowConfig.API.HMAC.AppIDName] = flowConfig.API.HMAC.AppIDValue
+				headersHmac[flowConfig.API.HMAC.AppIDName] = flowConfig.API.HMAC.AppIDValue
 			}
 
 			if flowConfig.API.HMAC.AppKeyName != "" {
-				headers[flowConfig.API.HMAC.AppIDName] = flowConfig.API.HMAC.AppIDValue
+				headersHmac[flowConfig.API.HMAC.AppIDName] = flowConfig.API.HMAC.AppIDValue
 			}
 
 			currTime := time.Now().UTC().Add(8 * time.Hour).Format(HMACTimeStampFormatConvert(flowConfig.API.HMAC.TimestampFormat))
@@ -408,12 +407,12 @@ func RequestOtherSystemAPIFromAllSyncFlow(asConfig allSyncModel.AllSyncConfig, f
 		}
 	case allSyncModel.AuthenticationTypeOAuth2:
 		{
-			token, err := GetOAuth2TokenByAppID(asConfig, flowAppID)
+			var token allSyncModel.OAuth2Token
+
+			token, err = GetOAuth2TokenByAppID(asConfig, flowAppID)
 			if err != nil {
-				if err != nil {
-					err = errors.New("Get OAuth2Token By AppID ERROR - " + err.Error())
-					return
-				}
+				err = errors.New("Get OAuth2Token By AppID ERROR - " + err.Error())
+				return
 			}
 
 			headers["Authorization"] = fmt.Sprintf("Bearer %s", token.Token.ID)
