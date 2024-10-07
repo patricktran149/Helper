@@ -293,6 +293,7 @@ func RequestOtherSystemAPIFromAllSyncFlow(asConfig allSyncModel.AllSyncConfig, f
 					oauthHeaders = flowConfig.OAuth.Headers
 					r            string
 					accessToken  string
+					respObject   = make(map[string]interface{})
 				)
 
 				bodyText, ok := flowConfig.OAuth.Body["bodyText"]
@@ -311,17 +312,16 @@ func RequestOtherSystemAPIFromAllSyncFlow(asConfig allSyncModel.AllSyncConfig, f
 					return
 				}
 
-				respObject := make(map[string]interface{}, 0)
+				accessToken = strings.Trim(r, `"`)
 
-				if err = json.Unmarshal([]byte(r), &respObject); err != nil {
-					err = errors.New("JSON Unmarshal Access token ERROR - " + err.Error())
-					return
-				}
+				respObject, _ = GetJSONDataMapping(accessToken)
 
-				accessToken, err = LiquidMapping(asConfig, flowConfig.OAuth.Template, respObject)
-				if err != nil {
-					err = errors.New("Liquid Mapping API URL ERROR - " + err.Error())
-					return
+				if len(respObject) > 0 {
+					accessToken, err = LiquidMapping(asConfig, flowConfig.OAuth.Template, respObject)
+					if err != nil {
+						err = errors.New("Liquid Mapping Access Token ERROR - " + err.Error())
+						return
+					}
 				}
 
 				if flowConfig.API.Token == "" {
