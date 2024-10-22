@@ -517,6 +517,15 @@ func RequestOtherSystemAPIFromAllSyncFlow(asConfig allSyncModel.AllSyncConfig, f
 
 	if len(flowConfig.API.Body) > 0 && string(postData) == "" {
 		body := helper.JSONToString(flowConfig.API.Body)
+
+		bodyText, ok := flowConfig.API.Body["bodyText"]
+		if ok {
+			bod, ok1 := bodyText.(string)
+			if ok1 {
+				body = bod
+			}
+		}
+
 		var liquidMappedValue string
 		if strings.Contains(body, "lastrun") {
 			//Assign temp value
