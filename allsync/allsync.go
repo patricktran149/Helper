@@ -541,7 +541,7 @@ func RequestOtherSystemAPIFromAllSyncFlow(asConfig allSyncModel.AllSyncConfig, f
 				lastRunPart = match[0:len(match)]
 			}
 
-			currentTimeValue, err = LiquidMapping(asConfig, strings.ReplaceAll(lastRunPart, "lastrun", "now"), nil)
+			currentTimeValue, err = LiquidMapping(asConfig, strings.ReplaceAll(lastRunPart, "lastrun", "now"), mapData)
 			if err != nil {
 				err = errors.New(fmt.Sprintf("Get Application [%s] ERROR - %s", flowAppID, err.Error()))
 				return
@@ -565,7 +565,7 @@ func RequestOtherSystemAPIFromAllSyncFlow(asConfig allSyncModel.AllSyncConfig, f
 
 		}
 
-		liquidMappedValue, err = LiquidMapping(asConfig, body, nil)
+		liquidMappedValue, err = LiquidMapping(asConfig, body, mapData)
 		if err != nil {
 			err = errors.New(fmt.Sprintf("Get Application [%s] ERROR - %s", flowAppID, err.Error()))
 			return
