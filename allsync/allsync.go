@@ -1161,6 +1161,21 @@ func CreateMicroServiceStatus(asConfig allSyncModel.AllSyncConfig, mssReq allSyn
 	return allSyncResp.Data.MicroServiceStatus, nil
 }
 
+func CreateSystemResourceMonitor(asConfig allSyncModel.AllSyncConfig, resourceReq allSyncModel.SystemResourceRequest) (err error) {
+	var allSyncResp allSyncModel.ToAppResponse
+
+	statusCode, msg, respData := RequestAllSync(asConfig, "System/ResourceMonitor", http.MethodPost, resourceReq, nil)
+	if statusCode != 200 {
+		return errors.New(fmt.Sprintf("Create Resource Monitor ERROR - %s", msg))
+	}
+
+	if err := json.Unmarshal(respData, &allSyncResp); err != nil {
+		return errors.New("JSON Unmarshal ERROR - " + err.Error())
+	}
+
+	return
+}
+
 func UpdateMicroServiceStatus(asConfig allSyncModel.AllSyncConfig, id string, mssReq bson.M) (mss allSyncModel.MicroServiceStatusResponse, err error) {
 	var allSyncResp allSyncModel.ToAppResponse
 
