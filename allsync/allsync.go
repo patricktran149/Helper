@@ -1164,7 +1164,7 @@ func CreateMicroServiceStatus(asConfig allSyncModel.AllSyncConfig, mssReq allSyn
 func CreateSystemResourceMonitor(asConfig allSyncModel.AllSyncConfig, resourceReq allSyncModel.SystemResourceRequest) (err error) {
 	var allSyncResp allSyncModel.ToAppResponse
 
-	statusCode, msg, respData := RequestAllSync(asConfig, "System/ResourceMonitor", http.MethodPost, resourceReq, nil)
+	statusCode, msg, respData := RequestAllSyncSystem(asConfig, "System/ResourceMonitor", http.MethodPost, resourceReq, nil)
 	if statusCode != 200 {
 		return errors.New(fmt.Sprintf("Create Resource Monitor ERROR - %s", msg))
 	}
