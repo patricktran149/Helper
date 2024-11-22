@@ -660,6 +660,7 @@ func RequestOtherSystemAPI(method, apiUrl string, data []byte, params, headers m
 
 		respData = string(body)
 
+		headersResp = make(map[string]interface{})
 		for key, _ := range res.Header {
 			headersResp[key] = res.Header.Get(key)
 		}
