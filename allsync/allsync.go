@@ -306,7 +306,7 @@ func RequestOtherSystemAPIFromAllSyncFlow(asConfig allSyncModel.AllSyncConfig, f
 					oauthBody = helper.JSONToString(flowConfig.OAuth.Body)
 				}
 
-				_, r, err = RequestOtherSystemAPI(oauthMethod, oauthURL, []byte(oauthBody), oauthParams, oauthHeaders, timeout, flowConfig.OAuth.P12)
+				_, r, _, err = RequestOtherSystemAPI(oauthMethod, oauthURL, []byte(oauthBody), oauthParams, oauthHeaders, timeout, flowConfig.OAuth.P12)
 				if err != nil {
 					err = errors.New("Request Access token ERROR - " + err.Error())
 					return
@@ -581,7 +581,7 @@ func RequestOtherSystemAPIFromAllSyncFlow(asConfig allSyncModel.AllSyncConfig, f
 	qLogs = LogsAddLog(qLogs, "Headers", helper.JSONToString(headers), "", "")
 	qLogs = LogsAddLog(qLogs, "Template", helper.JSONToString(toMapData), "", "")
 
-	sendData, respData, err = RequestOtherSystemAPI(apiMethod, apiURL, postData, params, headers, timeout, flowConfig.API.P12)
+	sendData, respData, _, err = RequestOtherSystemAPI(apiMethod, apiURL, postData, params, headers, timeout, flowConfig.API.P12)
 	if err != nil {
 		err = errors.New("Request Other System API ERROR - " + err.Error())
 		return
@@ -590,7 +590,7 @@ func RequestOtherSystemAPIFromAllSyncFlow(asConfig allSyncModel.AllSyncConfig, f
 	return
 }
 
-func RequestOtherSystemAPI(method, apiUrl string, data []byte, params, headers map[string]interface{}, timeout time.Duration, p12 allSyncModel.P12) (sendData, respData string, err error) {
+func RequestOtherSystemAPI(method, apiUrl string, data []byte, params, headers map[string]interface{}, timeout time.Duration, p12 allSyncModel.P12) (sendData, respData string, headersResp map[string]interface{}, err error) {
 	var (
 		client = &http.Client{}
 		ctx    = context.Background()
@@ -659,6 +659,10 @@ func RequestOtherSystemAPI(method, apiUrl string, data []byte, params, headers m
 		}
 
 		respData = string(body)
+
+		for key, _ := range res.Header {
+			headersResp[key] = res.Header.Get(key)
+		}
 
 		if res.StatusCode < 200 || res.StatusCode > 299 {
 			err = errors.New(fmt.Sprintf("Request ERROR - Status [%v] - Code [%v] - Response [%s]", res.Status, res.StatusCode, string(body)))
