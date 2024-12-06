@@ -798,3 +798,12 @@ func ReplaceIgnoreCase(input, old, new string) string {
 	// If no more occurrences are found, return the modified string
 	return input
 }
+
+func CopyMapStringInterface(source map[string]interface{}) map[string]interface{} {
+	dest := make(map[string]interface{})
+	for key, value := range source {
+		dest[key] = value
+	}
+
+	return dest
+}
