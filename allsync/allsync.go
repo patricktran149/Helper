@@ -1111,7 +1111,8 @@ func UpdateMicroService(asConfig allSyncModel.AllSyncConfig, request allSyncMode
 	delete(req, "fileURL")
 	delete(req, "languageCustomCode")
 	delete(req, "message")
-	delete(req, "customCode")
+	delete(req, "isDisable")
+	delete(req, "applicationTypeList")
 
 	statusCode, msg, _ := RequestAllSync(asConfig, fmt.Sprintf("MicroService/%s", request.ServiceID), http.MethodPut, req, nil)
 	if statusCode != 200 {
