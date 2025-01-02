@@ -723,7 +723,7 @@ func GetApplicationList(asConfig allSyncModel.AllSyncConfig) (appList []allSyncM
 func GetTenantList(asConfig allSyncModel.AllSyncConfig) (tenantList []allSyncModel.Tenant, err error) {
 	var allSyncResp allSyncModel.ToAppResponse
 
-	status, msg, respData := RequestAllSync(asConfig, "System/Tenant", http.MethodGet, nil, nil)
+	status, msg, respData := RequestAllSyncSystem(asConfig, "System/Tenant", http.MethodGet, nil, nil)
 	if status != 200 {
 		return tenantList, errors.New("Get All Tenant ERROR - " + msg)
 	}
@@ -738,7 +738,7 @@ func GetTenantList(asConfig allSyncModel.AllSyncConfig) (tenantList []allSyncMod
 func GetTenantByID(asConfig allSyncModel.AllSyncConfig, tenantID string) (tenant allSyncModel.Tenant, err error) {
 	var allSyncResp allSyncModel.ToAppResponse
 
-	status, msg, respData := RequestAllSync(asConfig, fmt.Sprintf("System/Tenant/%s", tenantID), http.MethodGet, nil, nil)
+	status, msg, respData := RequestAllSyncSystem(asConfig, fmt.Sprintf("System/Tenant/%s", tenantID), http.MethodGet, nil, nil)
 	if status != 200 {
 		return tenant, errors.New("Get Tenant ERROR - " + msg)
 	}
