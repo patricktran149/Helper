@@ -362,6 +362,10 @@ func RequestOtherSystemAPIFromAllSyncFlow(asConfig allSyncModel.AllSyncConfig, f
 			}
 
 			for key, value := range flowConfig.API.Params {
+				if key == "" {
+					continue
+				}
+
 				baseStrParts.Set(key, fmt.Sprintf("%v", value))
 			}
 
@@ -433,6 +437,10 @@ func RequestOtherSystemAPIFromAllSyncFlow(asConfig allSyncModel.AllSyncConfig, f
 	lastRun := app.GetConfigValue("last_run")
 
 	for k, v := range flowConfig.API.Params {
+		if k == "" {
+			continue
+		}
+
 		vStr, _ := v.(string)
 
 		var liquidMappedValue string
@@ -504,6 +512,10 @@ func RequestOtherSystemAPIFromAllSyncFlow(asConfig allSyncModel.AllSyncConfig, f
 	}
 
 	for k, v := range flowConfig.API.Headers {
+		if k == "" {
+			continue
+		}
+
 		vStr, _ := v.(string)
 		var liquidMappedValue string
 		liquidMappedValue, err = LiquidMapping(asConfig, vStr, mapData)
@@ -614,13 +626,24 @@ func RequestOtherSystemAPI(method, apiUrl string, data []byte, params, headers m
 	if len(params) > 0 {
 		query := url.Values{}
 		for k, v := range params {
+			if k == "" {
+				continue
+			}
+
 			query.Add(k, fmt.Sprintf("%v", v))
+
 		}
 
-		req.URL.RawQuery = query.Encode()
+		if len(query) > 0 {
+			req.URL.RawQuery = query.Encode()
+		}
 	}
 
 	for k, v := range headers {
+		if k == "" {
+			continue
+		}
+
 		req.Header.Set(k, fmt.Sprintf("%v", v))
 	}
 
