@@ -825,6 +825,36 @@ func GetQueueOutgoingList(asConfig allSyncModel.AllSyncConfig, applicationID str
 	return allSyncResp.Data.QueueOutgoingList, nil
 }
 
+func GetQueueIncomingByID(asConfig allSyncModel.AllSyncConfig, applicationID, queueID string) (queueIncoming allSyncModel.Queue, err error) {
+	var allSyncResp allSyncModel.ToAppResponse
+
+	status, msg, respData := RequestAllSync(asConfig, fmt.Sprintf("QueueIncoming/%s/%s", applicationID, queueID), http.MethodGet, nil, nil)
+	if status != 200 {
+		return queueIncoming, errors.New("Get Outgoing Queue list ERROR - " + msg)
+	}
+
+	if err := json.Unmarshal(respData, &allSyncResp); err != nil {
+		return queueIncoming, errors.New("JSON Unmarshal ERROR - " + err.Error())
+	}
+
+	return allSyncResp.Data.QueueIncoming, nil
+}
+
+func GetQueueOutgoingByID(asConfig allSyncModel.AllSyncConfig, applicationID, queueID string) (queueOutgoing allSyncModel.Queue, err error) {
+	var allSyncResp allSyncModel.ToAppResponse
+
+	status, msg, respData := RequestAllSync(asConfig, fmt.Sprintf("QueueOutgoing/%s/%s", applicationID, queueID), http.MethodGet, nil, nil)
+	if status != 200 {
+		return queueOutgoing, errors.New("Get Outgoing Queue list ERROR - " + msg)
+	}
+
+	if err := json.Unmarshal(respData, &allSyncResp); err != nil {
+		return queueOutgoing, errors.New("JSON Unmarshal ERROR - " + err.Error())
+	}
+
+	return allSyncResp.Data.QueueOutgoing, nil
+}
+
 func GetDataMapperList(asConfig allSyncModel.AllSyncConfig, params map[string]interface{}) (dataMappers []allSyncModel.DataMapper, err error) {
 	var allSyncResp allSyncModel.ToAppResponse
 
