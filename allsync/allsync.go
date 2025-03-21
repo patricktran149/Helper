@@ -691,7 +691,7 @@ func RequestOtherSystemAPI(asConfig allSyncModel.AllSyncConfig, method, apiUrl s
 		if responseStatusMapping != "" {
 			respMap := make(map[string]interface{})
 
-			if err = json.Unmarshal([]byte(respData), &respMap); err != nil {
+			if errF := json.Unmarshal([]byte(respData), &respMap); errF != nil {
 				goto checkStatusCode
 			}
 
@@ -701,8 +701,8 @@ func RequestOtherSystemAPI(asConfig allSyncModel.AllSyncConfig, method, apiUrl s
 				"statusCode": res.StatusCode,
 			}
 
-			errMsg, err := LiquidMapping(asConfig, responseStatusMapping, dataMapping)
-			if err != nil {
+			errMsg, errF := LiquidMapping(asConfig, responseStatusMapping, dataMapping)
+			if errF != nil {
 				goto checkStatusCode
 			}
 
