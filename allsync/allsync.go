@@ -306,7 +306,7 @@ func RequestOtherSystemAPIFromAllSyncFlow(asConfig allSyncModel.AllSyncConfig, f
 					oauthBody = helper.JSONToString(flowConfig.OAuth.Body)
 				}
 
-				_, r, _, err = RequestOtherSystemAPI(oauthMethod, oauthURL, []byte(oauthBody), oauthParams, oauthHeaders, timeout, flowConfig.OAuth.P12)
+				_, r, _, err = RequestOtherSystemAPI(asConfig, oauthMethod, oauthURL, []byte(oauthBody), oauthParams, oauthHeaders, timeout, flowConfig.OAuth.P12, flowConfig.OAuth.ResponseStatusMapping)
 				if err != nil {
 					err = errors.New("Request Access token ERROR - " + err.Error())
 					return
@@ -593,7 +593,7 @@ func RequestOtherSystemAPIFromAllSyncFlow(asConfig allSyncModel.AllSyncConfig, f
 	qLogs = LogsAddLog(qLogs, "Headers", helper.JSONToString(headers), "", "")
 	qLogs = LogsAddLog(qLogs, "Template", helper.JSONToString(toMapData), "", "")
 
-	sendData, respData, _, err = RequestOtherSystemAPI(apiMethod, apiURL, postData, params, headers, timeout, flowConfig.API.P12)
+	sendData, respData, _, err = RequestOtherSystemAPI(asConfig, apiMethod, apiURL, postData, params, headers, timeout, flowConfig.API.P12, flowConfig.API.ResponseStatusMapping)
 	if err != nil {
 		err = errors.New("Request Other System API ERROR - " + err.Error())
 		return
@@ -602,7 +602,7 @@ func RequestOtherSystemAPIFromAllSyncFlow(asConfig allSyncModel.AllSyncConfig, f
 	return
 }
 
-func RequestOtherSystemAPI(method, apiUrl string, data []byte, params, headers map[string]interface{}, timeout time.Duration, p12 allSyncModel.P12) (sendData, respData string, headersResp map[string]interface{}, err error) {
+func RequestOtherSystemAPI(asConfig allSyncModel.AllSyncConfig, method, apiUrl string, data []byte, params, headers map[string]interface{}, timeout time.Duration, p12 allSyncModel.P12, responseStatusMapping string) (sendData, respData string, headersResp map[string]interface{}, err error) {
 	var (
 		client = &http.Client{}
 		ctx    = context.Background()
@@ -688,10 +688,40 @@ func RequestOtherSystemAPI(method, apiUrl string, data []byte, params, headers m
 			headersResp[key] = res.Header.Get(key)
 		}
 
-		if res.StatusCode < 200 || res.StatusCode > 299 {
-			err = errors.New(fmt.Sprintf("Request ERROR - Status [%v] - Code [%v] - Response [%s]", res.Status, res.StatusCode, string(body)))
+		if responseStatusMapping != "" {
+			respMap := make(map[string]interface{})
+
+			if err = json.Unmarshal([]byte(respData), &respMap); err != nil {
+				goto checkStatusCode
+			}
+
+			dataMapping := map[string]interface{}{
+				"headers":    headersResp,
+				"body":       respMap,
+				"statusCode": res.StatusCode,
+			}
+
+			errMsg, err := LiquidMapping(asConfig, responseStatusMapping, dataMapping)
+			if err != nil {
+				goto checkStatusCode
+			}
+
+			if errMsg != "" {
+				err = errors.New(fmt.Sprintf("Request ERROR - Status [%s] - Code [%d] - Response [%s]", res.Status, res.StatusCode, errMsg))
+				return
+			}
+
 			return
 		}
+
+	checkStatusCode:
+		{
+			if res.StatusCode < 200 || res.StatusCode > 299 {
+				err = errors.New(fmt.Sprintf("Request ERROR - Status [%s] - Code [%d] - Response [%s]", res.Status, res.StatusCode, string(body)))
+				return
+			}
+		}
+
 	}
 
 	return

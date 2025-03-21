@@ -141,8 +141,8 @@ github.com/montanaflynn/stats v0.0.0-20171201202039-1bf9dbcd8cbe h1:iruDEfMl2E6f
 github.com/montanaflynn/stats v0.0.0-20171201202039-1bf9dbcd8cbe/go.mod h1:wL8QJuTMNUDYhXwkmfOly8iTdp5TEcJFWZD2D7SIkUc=
 github.com/osteele/tuesday v1.0.3 h1:SrCmo6sWwSgnvs1bivmXLvD7Ko9+aJvvkmDjB5G4FTU=
 github.com/osteele/tuesday v1.0.3/go.mod h1:pREKpE+L03UFuR+hiznj3q7j3qB1rUZ4XfKejwWFF2M=
-github.com/patricktran149/AllSync.Model v0.0.0-20241119062715-b392e7bd17b1 h1:yQtDkLe0UpqINSg87AejxjtZ4iN19yBN/oqQ6qqM3CU=
-github.com/patricktran149/AllSync.Model v0.0.0-20241119062715-b392e7bd17b1/go.mod h1:OWYIuYNaEUWs1OZcCZDiyIEvQSNN+uHX3MLSMEfdNpk=
+github.com/patricktran149/AllSync.Model v0.0.0-20250321044134-40950fe56a84 h1:meyhh1v6AmymQJZt+d6kZnBQMCOGhiGgOM2IzaCuSeQ=
+github.com/patricktran149/AllSync.Model v0.0.0-20250321044134-40950fe56a84/go.mod h1:OWYIuYNaEUWs1OZcCZDiyIEvQSNN+uHX3MLSMEfdNpk=
 github.com/patricktran149/liquid v0.0.0-20240717044258-e806678211bc h1:k7gGFeOp3yg2xIHsukzvfhS2Kjb4DyEA5chzc2fA+1E=
 github.com/patricktran149/liquid v0.0.0-20240717044258-e806678211bc/go.mod h1:+GrCIaQpiMGEpyslgXjlWKlOabqUpRzmHFoHujzQ6PQ=
 github.com/pkg/browser v0.0.0-20180916011732-0a3d74bf9ce4/go.mod h1:4OwLy04Bl9Ef3GJJCoec+30X3LQs/0/m4HFRt/2LUSA=
