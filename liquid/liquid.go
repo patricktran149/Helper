@@ -7,6 +7,7 @@ import (
 	cryptoRand "crypto/rand"
 	"crypto/sha256"
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -30,6 +31,8 @@ func NewEngine() *liquid.Engine {
 	engine.RegisterFilter("subtractRight", subtractRight)
 	engine.RegisterFilter("hmacSHA256", hmacSHA256)
 	engine.RegisterFilter("stringToHex", stringToHex)
+	engine.RegisterFilter("stringToJsonObject", stringToJSONObject)
+	engine.RegisterFilter("stringToJsonArray", stringToJSONArray)
 
 	return engine
 }
@@ -290,4 +293,32 @@ func byteToHex(bytes []byte) string {
 		sign += hex
 	}
 	return sign
+}
+
+func stringToJSONObject(input interface{}) (map[string]interface{}, error) {
+	data, ok := input.(string)
+	if !ok {
+		return nil, errors.New("Input is not a string ")
+	}
+
+	dataMap := make(map[string]interface{})
+	if err := json.Unmarshal([]byte(data), &dataMap); err != nil {
+		return nil, errors.New("Unmarshal JSON Object from string - " + err.Error())
+	}
+
+	return dataMap, nil
+}
+
+func stringToJSONArray(input interface{}) ([]map[string]interface{}, error) {
+	data, ok := input.(string)
+	if !ok {
+		return nil, errors.New("Input is not a string ")
+	}
+
+	dataMap := make([]map[string]interface{}, 0)
+	if err := json.Unmarshal([]byte(data), &dataMap); err != nil {
+		return nil, errors.New("Unmarshal JSON Array from string - " + err.Error())
+	}
+
+	return dataMap, nil
 }
