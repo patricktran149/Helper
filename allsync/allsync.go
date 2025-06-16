@@ -701,17 +701,29 @@ func RequestOtherSystemAPI(asConfig allSyncModel.AllSyncConfig, method, apiUrl s
 				"statusCode": res.StatusCode,
 			}
 
-			errMsg, errF := LiquidMapping(asConfig, responseStatusMapping, dataMapping)
+			dataOut, errF := LiquidMapping(asConfig, responseStatusMapping, dataMapping)
 			if errF != nil {
 				goto checkStatusCode
 			}
 
-			if errMsg != "" {
-				err = errors.New(fmt.Sprintf("Request ERROR - Status [%s] - Code [%d] - Response [%s]", res.Status, res.StatusCode, errMsg))
-				return
+			dataMapped := make(map[string]interface{})
+			if errF = json.Unmarshal([]byte(dataOut), &dataMapped); errF != nil {
+				goto checkStatusCode
 			}
 
-			return
+			errMsgInterface, ok := dataMapped["errorMessage"]
+			if ok {
+				errMsg, ok := errMsgInterface.(string)
+				if ok {
+					if errMsg != "" {
+						err = errors.New(fmt.Sprintf("Request ERROR - Status [%s] - Code [%d] - Response [%s]", res.Status, res.StatusCode, errMsg))
+					}
+
+					return
+				}
+			} else {
+				goto checkStatusCode
+			}
 		}
 
 	checkStatusCode:
