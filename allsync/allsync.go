@@ -20,6 +20,7 @@ import (
 	_ "github.com/SAP/go-hdb/driver"
 	xj "github.com/basgys/goxml2json"
 	mssql "github.com/denisenkom/go-mssqldb"
+	"github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/copier"
 	allSyncModel "github.com/patricktran149/AllSync.Model"
 	helper "github.com/patricktran149/Helper"
@@ -1599,6 +1600,178 @@ func SQLExecuteQuery(db *sql.DB, query string) (objects []map[string]interface{}
 }
 
 func SQLExecuteRawQuery(db *sql.DB, query string) (err error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	defer cancel()
+
+	db.PingContext(ctx)
+
+	rows, err := db.Query(query)
+	if err != nil {
+		return errors.New(fmt.Sprintf("Excecute Raw Query ERROR - %s", err.Error()))
+	}
+	defer rows.Close()
+
+	return
+}
+
+func MySQLConnect(mySQLConf allSyncModel.MySQLConfig) (db *sql.DB, err error) {
+	var connStr = fmt.Sprintf("%s:%s@tcp(%s)/%s?parseTime=true&timeout=30s", mySQLConf.User, url.QueryEscape(mySQLConf.Password), mySQLConf.Server, mySQLConf.DatabaseName)
+
+	if !helper.IsDriverRegistered("mysql") {
+		apmsql.Register("mysql", &mysql.MySQLDriver{})
+	}
+
+	db, err = sql.Open("mysql", connStr)
+	if err != nil {
+		return db, errors.New("Open MySQL DB ERROR - " + err.Error())
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	if err = db.PingContext(ctx); err != nil {
+		return db, errors.New("Ping MySQL Database ERROR - " + err.Error())
+	}
+
+	return
+}
+
+func MySQLExecuteQuery(db *sql.DB, query string) (objects []map[string]interface{}, err error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	defer cancel()
+
+	db.PingContext(ctx)
+
+	rows, err := db.Query(query)
+	if err != nil {
+		return objects, errors.New(fmt.Sprintf("Excecute Query ERROR - %s", err.Error()))
+	}
+	defer rows.Close()
+
+	// Get column names
+	columnNames, err := rows.Columns()
+	if err != nil {
+		return objects, errors.New(fmt.Sprintf("Get collumn names ERROR - %s", err.Error()))
+	}
+
+	var hasJsonText = false
+	if len(columnNames) == 1 && columnNames[0] == "json" {
+		hasJsonText = true
+	}
+
+	// Get column types
+	columnTypes, err := rows.ColumnTypes()
+	if err != nil {
+		return objects, errors.New(fmt.Sprintf("Get collumn types ERROR - %s", err.Error()))
+	}
+
+	// Iterate through rows
+	for rows.Next() {
+		// Create a slice to hold column values
+		columns := make([]interface{}, len(columnNames))
+
+		// Create a slice to hold pointers to each column value
+		columnPointers := make([]interface{}, len(columnNames))
+
+		// Initialize pointers to each column value
+		for i := range columns {
+			columnPointers[i] = &columns[i]
+		}
+
+		// Scan the row into the columns slice
+		if err := rows.Scan(columnPointers...); err != nil {
+			return objects, errors.New(fmt.Sprintf("Row scan ERROR - %s", err.Error()))
+		}
+
+		if hasJsonText {
+			val := columns[0]
+
+			// Convert column values to appropriate JSON types
+			switch v := val.(type) {
+			case string:
+				// Handle string data type explicitly
+				if err = json.Unmarshal([]byte(v), &objects); err != nil {
+					return objects, errors.New("Unmarshal string to JSON ERROR - " + err.Error())
+				}
+				break
+			default:
+				return objects, errors.New("json field is not a text to marshal to JSON format")
+			}
+
+			return
+		}
+
+		// Create a map to hold the row data
+		rowMap := make(map[string]interface{})
+
+		// Iterate through columns and retrieve values
+		for i, colName := range columnNames {
+			val := columns[i]
+
+			if strings.Contains(strings.ToLower(colName), "_query") {
+				q, ok := val.(string)
+				if !ok {
+					return objects, errors.New("Query is not a string ERROR - " + err.Error())
+				}
+
+				objs, err := SQLExecuteQuery(db, q)
+				if err != nil {
+					return objects, errors.New("Exec SQL Query ERROR - " + err.Error())
+				}
+
+				//remove "_query" from colName
+				colName = helper.ReplaceIgnoreCase(colName, "_query", "")
+
+				rowMap[colName] = objs
+
+				continue
+			}
+
+			// Convert column values to appropriate JSON types
+			switch v := val.(type) {
+			case nil:
+				rowMap[colName] = nil
+			case int, int32, int64:
+				rowMap[colName] = v
+			case float64:
+				rowMap[colName] = v
+			case []byte:
+				// Convert []byte to string for text-like data types
+				colType := columnTypes[i].DatabaseTypeName()
+				switch colType {
+				case "VARCHAR", "TEXT", "NVARCHAR":
+					rowMap[colName] = string(v)
+				case "DECIMAL":
+					{
+						d, err := strconv.ParseFloat(string(v), 64)
+						if err != nil {
+							return objects, errors.New(fmt.Sprintf("Parse Decimal [%v] ERROR - %s", v, err.Error()))
+						}
+
+						rowMap[colName] = d
+					}
+				default:
+					rowMap[colName] = v // Keep []byte for other binary-like data types
+				}
+			case time.Time:
+				// Convert time.Time to string in a specific format
+				rowMap[colName] = v.Format("2006-01-02 15:04:05")
+			case string:
+				// Handle string data type explicitly
+				rowMap[colName] = v
+			default:
+				rowMap[colName] = fmt.Sprintf("%v", v)
+			}
+		}
+
+		// Append the row map to the objects slice
+		objects = append(objects, rowMap)
+	}
+
+	return
+}
+
+func MySQLExecuteRawQuery(db *sql.DB, query string) (err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 
