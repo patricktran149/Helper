@@ -22,6 +22,7 @@ import (
 	"math"
 	"math/big"
 	"math/rand"
+	"net"
 	"net/http"
 	"net/url"
 	"os"
@@ -806,4 +807,19 @@ func CopyMapStringInterface(source map[string]interface{}) map[string]interface{
 	}
 
 	return dest
+}
+
+func GetMACAddress() (string, error) {
+	interfaces, err := net.Interfaces()
+	if err != nil {
+		return "", err
+	}
+
+	for _, i := range interfaces {
+		if mac := i.HardwareAddr.String(); mac != "" {
+			return mac, nil
+		}
+	}
+
+	return "", fmt.Errorf("no MAC address found")
 }
