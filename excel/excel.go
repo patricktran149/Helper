@@ -10,10 +10,10 @@ import (
 
 // ConvertFlatJSONToExcel converts either a JSON flat object or array of flat objects into Excel
 // and forces all cells to be stored as text
-func ConvertFlatJSONToExcel(jsonStr, filePath string) error {
+func ConvertFlatJSONToExcel(jsonByte []byte, filePath string) error {
 	// Try to unmarshal into an array first
 	var arr = make([]bson.D, 0)
-	if err := bson.UnmarshalExtJSON([]byte(jsonStr), true, &arr); err == nil {
+	if err := bson.UnmarshalExtJSON(jsonByte, true, &arr); err == nil {
 		if len(arr) > 0 {
 			return writeToExcel(arr, filePath)
 		}
@@ -21,7 +21,7 @@ func ConvertFlatJSONToExcel(jsonStr, filePath string) error {
 
 	//Try single object
 	var obj = make(bson.D, 0)
-	if err := bson.UnmarshalExtJSON([]byte(jsonStr), true, &obj); err == nil {
+	if err := bson.UnmarshalExtJSON(jsonByte, true, &obj); err == nil {
 		return writeToExcel([]bson.D{obj}, filePath)
 	} else {
 		return errors.New("Parse JSON ERROR - " + err.Error())
